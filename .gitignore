@@ -425,6 +425,11 @@ game_root/
 saves/
 src/generated/
 
+# STKX-recomp: Local notes & launcher
+GEMINI.md
+milestone_progress.txt
+launch-game.bat
+
 # STKX-recomp: Third-party libraries fetched via scripts/download-dependencies.bat or .gitmodules
 thirdparty/FFmpeg/
 thirdparty/cli11/
