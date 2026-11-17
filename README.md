@@ -1,11 +1,13 @@
-# 首都高バトルX (Shutokou Battle X / Import Tuner Challenge) - Windows Native Recompilation
+# 首都高バトルX (Shutokou Battle X) - Windows Native Recompilation
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%20x64%20(DirectX%2012%20%2F%20Vulkan)-blue.svg)]()
 [![Recompiler](https://img.shields.io/badge/Recompiler-ReXGlue%20%2F%20ShiftGlue-emerald.svg)]()
-[![Title ID](https://img.shields.io/badge/Title%20ID-474507D1%20%2F%20555307EE-orange.svg)]()
+[![Title ID](https://img.shields.io/badge/Title%20ID-474507D1-orange.svg)]()
 [![Target](https://img.shields.io/badge/Target-C%2B%2B23%20Native%20MSVC%20%2F%20Clang-green.svg)]()
 
-A native static recompilation project for the Xbox 360 title **Shutokou Battle X** (首都高バトルX, released internationally as **Import Tuner Challenge**) developed by Genki Co., Ltd.
+A native static recompilation project for the Xbox 360 title **Shutokou Battle X** (首都高バトルX, Title ID: `474507D1`) developed by Genki Co., Ltd.
+
+> **Note:** Only the Japanese release (**Shutokou Battle X**, Title ID `474507D1`) has been tested. Other regional releases have **not** been tested.
 
 Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) & [ShiftGlue](https://github.com/arcanite24/shiftglue-sdk) ahead-of-time (AOT) static recompilation architecture (similar to [pinyon-shift](https://github.com/arcanite24/pinyon-shift)).
 
@@ -71,4 +73,4 @@ scripts\build-windows.bat
 
 ## 声明 (Disclaimer)
 
-本项目是独立的开源研究与静态重编译工程，**不包含**任何受版权保护的游戏专有资源（如原始可执行文件、3D 模型、音效、贴图等）。用户必须合法拥有 Xbox 360 版《首都高バトルX》（或《Import Tuner Challenge》）正版光盘并在本地自行提取数据。
+本项目是独立的开源研究与静态重编译工程，**不包含**任何受版权保护的游戏专有资源（如原始可执行文件、3D 模型、音效、贴图等）。用户必须合法拥有 Xbox 360 版《首都高バトルX》（Title ID: `474507D1`）正版光盘并在本地自行提取数据。本项目仅针对日版《首都高バトルX》进行开发与实测，未对其他地区版本进行过测试。
