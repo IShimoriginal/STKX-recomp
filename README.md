@@ -9,7 +9,7 @@ A native static recompilation project for the Xbox 360 title **Shutokou Battle X
 
 > **Note:** Only the Japanese release (**Shutokou Battle X**, Title ID `474507D1`) has been tested. Other regional releases have **not** been tested.
 
-Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) & [ShiftGlue](https://github.com/arcanite24/shiftglue-sdk) ahead-of-time (AOT) static recompilation architecture (similar to [pinyon-shift](https://github.com/arcanite24/pinyon-shift)).
+Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) ahead-of-time (AOT) static recompilation SDK, with [MCLA-recomp](https://github.com/arcanite24/MCLA-recomp) and [pinyon-shift](https://github.com/arcanite24/pinyon-shift) as reference projects.
 
 ---
 
@@ -93,6 +93,14 @@ scripts\build-windows.bat
 └── docs/
     └── BUILD_WINDOWS.md          # 详细中文编译指南与常见问题
 ```
+
+---
+
+## 致谢 (Acknowledgements)
+
+- **[ReXGlue](https://github.com/rexglue/rexglue-sdk)** — 提供 Xbox 360 静态重编译 SDK、运行时与 Xenos GPU 后端。
+- **[MCLA-recomp](https://github.com/arcanite24/MCLA-recomp)** — 提供 Xbox 360 赛车游戏静态重编译与高帧率适配参考。
+- **[pinyon-shift](https://github.com/arcanite24/pinyon-shift)** — 提供静态重编译工程结构与实现思路参考。
 
 ---
 
