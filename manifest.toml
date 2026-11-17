@@ -1,0 +1,548 @@
+# ==============================================================================
+# ReXGlue AOT Recompilation Manifest: 首都高バトルX (Shutokou Battle X)
+# English Title: Import Tuner Challenge
+# Title ID: 474507D1 (JP) / 555307EE (US/EU)
+# Media ID: 01A241F8
+# Target Platform: Windows x64 / C++23 Native
+# ==============================================================================
+
+[project]
+name = "shutokou_battle_x"
+sdk_version = "0.10.0"
+title_id = "474507D1"
+game_root = "game_root"
+
+[entrypoint]
+file_path = "game_root/default.xex"
+out_directory_path = "src/generated/entrypoint"
+includes = []
+
+# Explicitly register targets identified during runtime flow analysis
+[entrypoint.functions."0x824532F8"]
+name = "fn_824532F8"
+
+[entrypoint.functions."0x82383C30"]
+name = "fn_82383C30"
+
+[entrypoint.functions."0x82090F10"]
+name = "fn_82090F10"
+
+[entrypoint.functions."0x82090910"]
+name = "fn_82090910"
+
+[entrypoint.functions."0x82094AC0"]
+name = "fn_82094AC0"
+
+[entrypoint.functions."0x82094AD8"]
+name = "fn_82094AD8"
+
+[entrypoint.functions."0x82094AF8"]
+name = "fn_82094AF8"
+
+[entrypoint.functions."0x82096818"]
+name = "fn_82096818"
+
+[entrypoint.functions."0x82090938"]
+name = "fn_82090938"
+
+[entrypoint.functions."0x820909D8"]
+name = "fn_820909D8"
+
+[entrypoint.functions."0x8244D4A0"]
+name = "fn_8244D4A0"
+
+[entrypoint.functions."0x8255FAF0"]
+name = "fn_8255FAF0"
+
+[entrypoint.functions."0x82096828"]
+name = "fn_82096828"
+
+[entrypoint.functions."0x82096838"]
+name = "fn_82096838"
+
+[entrypoint.functions."0x825741E8"]
+name = "fn_825741E8"
+
+[entrypoint.functions."0x820A87D0"]
+name = "fn_820A87D0"
+
+[entrypoint.functions."0x820AE040"]
+name = "fn_820AE040"
+
+[entrypoint.functions."0x820AE6F0"]
+name = "fn_820AE6F0"
+
+[entrypoint.functions."0x820A87C0"]
+name = "fn_820A87C0"
+
+[entrypoint.functions."0x820AE700"]
+name = "fn_820AE700"
+
+[entrypoint.functions."0x82117F78"]
+name = "fn_82117F78"
+
+[entrypoint.functions."0x82117F80"]
+name = "fn_82117F80"
+
+[entrypoint.functions."0x82117FE0"]
+name = "fn_82117FE0"
+
+[entrypoint.functions."0x82117FE8"]
+name = "fn_82117FE8"
+
+[entrypoint.functions."0x82117FF0"]
+name = "fn_82117FF0"
+
+[entrypoint.functions."0x8212BB40"]
+name = "fn_8212BB40"
+
+[entrypoint.functions."0x8222D708"]
+name = "fn_8222D708"
+
+[entrypoint.functions."0x8222D718"]
+name = "fn_8222D718"
+
+[entrypoint.functions."0x8222D728"]
+name = "fn_8222D728"
+
+[entrypoint.functions."0x8222D738"]
+name = "fn_8222D738"
+
+[entrypoint.functions."0x8223B7E0"]
+name = "fn_8223B7E0"
+
+[entrypoint.functions."0x8229B878"]
+name = "fn_8229B878"
+
+# Post-race wait gate patch (JP 474507D1 equivalent of US cmplwi cr6, r11, 60 -> 15)
+[[entrypoint.midasm_hook]]
+name = "sbx_post_race_wait_patch"
+address = 0x8218C30C
+registers = ["r11", "cr6", "xer"]
+after_instruction = true
+
+# ==============================================================================
+# Framerate / Speed Decoupling Hooks (JP 474507D1)
+# Note: real_dt is now measured directly from host XE_SWAP (VdSwap) intervals.
+# ==============================================================================
+
+# Global dt load -> steering & throttle/brake smoothing (sub_820BFB68: lfs f31, 6120(r11) @ 0x825F17E8)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f31"
+address = 0x820BFB98
+registers = ["f31"]
+after_instruction = true
+
+# Global dt load -> per-car tick wrapper tail-calling sub_820B6180 (sub_820BFF50: lfs f1, 6120(r11) @ 0x825F17E8)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f1"
+address = 0x820BFF54
+registers = ["f1"]
+after_instruction = true
+
+# Global dt load -> car[2352]/car[2356] setup for all active cars (sub_820C2E40: lfs f1, 6120(r25) @ 0x825F17E8)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f1"
+address = 0x820C2EB8
+registers = ["f1"]
+after_instruction = true
+
+# Global dt load -> world/effects/timers with pause-zero preserved (sub_820FF1A0: lfs f31, 12804(r11) @ 0x825F3204)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f31"
+address = 0x820FF1C0
+registers = ["f31"]
+after_instruction = true
+
+# Car physics substep car+2364 loads (all 15 sites)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f10"
+address = 0x820B0154
+registers = ["f10"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x820B0814
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x820B0838
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x820B0878
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f9"
+address = 0x820B262C
+registers = ["f9"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x820B2F14
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f6"
+address = 0x820B2F30
+registers = ["f6"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f13"
+address = 0x820B2F94
+registers = ["f13"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x820B31FC
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f10"
+address = 0x820B3294
+registers = ["f10"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f13"
+address = 0x820B33AC
+registers = ["f13"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f11"
+address = 0x820B33F8
+registers = ["f11"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x820B3FB8
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f11"
+address = 0x820B473C
+registers = ["f11"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f13"
+address = 0x820B4860
+registers = ["f13"]
+after_instruction = true
+
+# ==============================================================================
+# In-Race Timers & Global Frame Counter Decoupling (30 Hz shared accumulator)
+# ==============================================================================
+
+# Race elapsed frame counter +6116 (sub_821654A8: addi r10, r10, 1)
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_r10"
+address = 0x82165604
+registers = ["r10"]
+after_instruction = true
+
+# Battle / opponent elapsed frame counter +2200 (sub_82160CB0: addi r11, r11, 1)
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_r11"
+address = 0x82160CD4
+registers = ["r11"]
+after_instruction = true
+
+# Pre-race 4-second countdown +9616 up to 120 (sub_82165338: addi r11, r11, 1)
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_cap120_r11"
+address = 0x82165460
+registers = ["r11"]
+after_instruction = true
+
+# Global frame counter 0x826B5870 (+22640, used for total play time) (sub_82107A38: addi r10, r10, 1)
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_r10"
+address = 0x82107A58
+registers = ["r10"]
+after_instruction = true
+
+# Global transition/cooldown decrement 0x825F180C (+6156) (sub_82107A38: addi r10, r10, -1)
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_sub1_r10"
+address = 0x82107B58
+registers = ["r10"]
+after_instruction = true
+
+# ==============================================================================
+# UI / 2D Sprite / Effect & Menu Animation Step Decoupling (30 Hz baseline)
+# ==============================================================================
+
+# UI generic tween/fade countdown +108 (sub_8211EA80: before stw r9, 108(r11))
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_sub1_cr0_r9"
+address = 0x8211EACC
+registers = ["r9", "cr0", "xer"]
+after_instruction = false
+
+# UI blink period-41 counter +108 (sub_8211F438: before stw r10, 108(r11))
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_cr0_r10"
+address = 0x8211F450
+registers = ["r10", "cr0", "xer"]
+after_instruction = false
+
+# UI cycle period-30 counter +108 (sub_8211F6F0: before stw r11, 108(r30))
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_cr0_r11"
+address = 0x8211F720
+registers = ["r11", "cr0", "xer"]
+after_instruction = false
+
+# UI cycle period-20 counter +108 (sub_8211F8B8: before stw r11, 108(r30))
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_cr0_r11"
+address = 0x8211F8E8
+registers = ["r11", "cr0", "xer"]
+after_instruction = false
+
+# UI wave/angle step +8 counter +108 (sub_8211FA80: before stw r11, 108(r31))
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add8_cr0_r11"
+address = 0x8211FAB8
+registers = ["r11", "cr0", "xer"]
+after_instruction = false
+
+# UI glow period-150 counter +108 (sub_821200E0: before stw r10, 108(r11))
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_cr0_r10"
+address = 0x821200F8
+registers = ["r10", "cr0", "xer"]
+after_instruction = false
+
+# UI widget sub-anim counter +108 (fn_8212BB40: before stw r10, 108(r11))
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_cr0_r10"
+address = 0x8212BB58
+registers = ["r10", "cr0", "xer"]
+after_instruction = false
+
+# Effect queue pool #1 (stride 720) lifetime countdown +108 (sub_8212A508: before stw r11, 108(r7))
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_sub1_cr0_r11"
+address = 0x8212A5CC
+registers = ["r11", "cr0", "xer"]
+after_instruction = false
+
+# Effect queue pool #2 (stride 176) lifetime countdown +108 (sub_8212B1B0: before stw r11, 108(r4))
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_sub1_cr0_r11"
+address = 0x8212B27C
+registers = ["r11", "cr0", "xer"]
+after_instruction = false
+
+# Effect queue pool #3 (stride 144) lifetime countdown +108 (sub_8212CBF8: before stw r10, 108(r11))
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_sub1_cr0_r10"
+address = 0x8212CC44
+registers = ["r10", "cr0", "xer"]
+after_instruction = false
+
+# UI fade constant loads @ 0x82001F94 (sub_82124D38 / sub_82124E48)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f31"
+address = 0x82124D8C
+registers = ["f31"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f29"
+address = 0x82124E98
+registers = ["f29"]
+after_instruction = true
+
+# Menu state frame counter +9728 (sub_8226ED80: addi r11, r11, 1)
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_r11"
+address = 0x8226EE60
+registers = ["r11"]
+after_instruction = true
+
+# ==============================================================================
+# Round 2 Speed Decoupling Hooks (UI Timelines, 3D/UV Anims, Pad Repeat, Garage)
+# ==============================================================================
+
+# Pad hold frame counter (sub_82577A08: addi r10, r10, 1)
+[[entrypoint.midasm_hook]]
+name = "sbx_pad_hold_tick"
+address = 0x82577C10
+registers = ["r31", "r7", "r10"]
+after_instruction = true
+
+# Pad trigger / auto-repeat check (sub_82577DA0: lwzx r11, r4, r3)
+[[entrypoint.midasm_hook]]
+name = "sbx_pad_repeat_check"
+address = 0x82577DFC
+registers = ["r3", "r4", "r11"]
+after_instruction = true
+
+# Global UI animation timeline stepper (sub_8211D4B8: lfs f30, 8616(r11) - 631 callers via sub_8211E378)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f30"
+address = 0x8211D6B4
+registers = ["f30"]
+after_instruction = true
+
+# Global 3D/material/UV animation track stepper (sub_8257A460: lfs f31, 2592(r11))
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f31"
+address = 0x8257A48C
+registers = ["f31"]
+after_instruction = true
+
+# Particle fractional spawner / distance step (sub_821233C8 entry & sub_82126360 return)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f1"
+address = 0x821233C8
+registers = ["f1"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f1"
+address = 0x82126398
+registers = ["f1"]
+after_instruction = true
+
+# Garage/Custom camera yaw 30840(r31) += / -= 1.0f (sub_821F8048 & sub_82204D48)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x821F8240
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x821F8270
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x822050A0
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x822050D8
+registers = ["f0"]
+after_instruction = true
+
+# Garage/Custom camera pitch 30844(r31) += / -= step (sub_821F82D0 & sub_82205120)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x821F84C8
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x821F84F0
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x82205478
+registers = ["f0"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x822054A8
+registers = ["f0"]
+after_instruction = true
+
+# Garage camera pan/zoom integer steppers 30832/30836(r31) (sub_82204850)
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_r11"
+address = 0x82204C64
+registers = ["r11"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_sub1_r11"
+address = 0x82204CA0
+registers = ["r11"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_add1_r11"
+address = 0x82204CD4
+registers = ["r11"]
+after_instruction = true
+
+[[entrypoint.midasm_hook]]
+name = "sbx_tick_sub1_r11"
+address = 0x82204D0C
+registers = ["r11"]
+after_instruction = true
+
+# Menu cursor auto-repeat gate at 30Hz (sub_8210BCD8: skip repeat-timer tick when r4!=0 on 0-tick subframes)
+[[entrypoint.midasm_hook]]
+name = "sbx_menu_repeat_gate"
+address = 0x8210BE94
+registers = ["r4"]
+after_instruction = false
+jump_address_on_true = 0x8210BED4
+
+# Battle SP drain per-frame damage scaler (sub_82162F70: stw r11, 80(r1) before subf. r11, r11, r10)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_sp_dmg_r11"
+address = 0x82163108
+registers = ["r11", "r26"]
+after_instruction = false
+
+# Garage turntable camera timer (sub_8217DD48: lfs f0, -25112(r11) before fsubs)
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_dt_f0"
+address = 0x8217DD9C
+registers = ["f0"]
+after_instruction = true
+
+# Camera animation track timer (sub_820DA930: fsubs f0, f0, f30 on 4992(r31))
+[[entrypoint.midasm_hook]]
+name = "sbx_scale_sub_f0_f30"
+address = 0x820DA95C
+registers = ["f0", "f30"]
+after_instruction = true
+
+# If the game utilizes auxiliary dynamic modules/DLLs from disc:
+# [[modules]]
+# guest_path = "game:\\binkw32.dll"
+# file_path = "game_root/binkw32.dll"
+# out_directory_path = "src/generated/binkw32"
+# includes = []
+
+[recompiler]
+# Enable vectorization and fast math for PowerPC VMX128 instructions
+vmx128_vectorize = true
+enable_fast_math = true
+detect_jump_tables = true
+generate_indirect_call_table = true
+
+[patches]
+# Auto-apply essential PC compatibility fixes during codegen
+unlock_60fps = true
+widescreen_fov_fix = true
+skip_intro_videos = false
