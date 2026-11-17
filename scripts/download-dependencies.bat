@@ -109,6 +109,41 @@ if not exist "thirdparty\FFmpeg\libavutil\adler32.c" (
     git clone --depth 1 --branch xenia-ffmpeg-canary-full https://github.com/wmarti/FFmpeg.git thirdparty\FFmpeg
 )
 
+REM 14. vulkan-headers
+if not exist "thirdparty\vulkan-headers\include\vulkan\vulkan.h" (
+    echo [下载] 正在获取 vulkan-headers...
+    if exist "thirdparty\vulkan-headers" rmdir /s /q "thirdparty\vulkan-headers" >nul 2>nul
+    git clone --depth 1 https://github.com/KhronosGroup/Vulkan-Headers.git thirdparty\vulkan-headers
+)
+
+REM 15. vulkan-memory-allocator
+if not exist "thirdparty\vulkan-memory-allocator\include\vk_mem_alloc.h" (
+    echo [下载] 正在获取 vulkan-memory-allocator...
+    if exist "thirdparty\vulkan-memory-allocator" rmdir /s /q "thirdparty\vulkan-memory-allocator" >nul 2>nul
+    git clone --depth 1 https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git thirdparty\vulkan-memory-allocator
+)
+
+REM 16. spirv-headers
+if not exist "thirdparty\spirv-headers\include\spirv\unified1\spirv.h" (
+    echo [下载] 正在获取 spirv-headers...
+    if exist "thirdparty\spirv-headers" rmdir /s /q "thirdparty\spirv-headers" >nul 2>nul
+    git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Headers.git thirdparty\spirv-headers
+)
+
+REM 17. spirv-tools
+if not exist "thirdparty\spirv-tools\include\spirv-tools\libspirv.h" (
+    echo [下载] 正在获取 spirv-tools...
+    if exist "thirdparty\spirv-tools" rmdir /s /q "thirdparty\spirv-tools" >nul 2>nul
+    git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Tools.git thirdparty\spirv-tools
+)
+
+REM 18. glslang (11.13.0)
+if not exist "thirdparty\glslang\SPIRV\SpvBuilder.h" (
+    echo [下载] 正在获取 glslang [分支 11.13.0]...
+    if exist "thirdparty\glslang" rmdir /s /q "thirdparty\glslang" >nul 2>nul
+    git clone --depth 1 --branch 11.13.0 https://github.com/KhronosGroup/glslang.git thirdparty\glslang
+)
+
 echo.
 echo ==============================================================================
 echo [SUCCESS] 所有依赖库检测与同步完成！

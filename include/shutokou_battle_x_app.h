@@ -57,6 +57,12 @@ public:
 
         // 允许零页 (0x00000000 - 0x00010000) 读写，防止空指针与未初始化结构体解引用引发 Access Violation 闪退
         REXCVAR_SET(protect_zero, false);
+
+        // Vulkan 后端默认关闭异步着色器编译，防止车库等场景因占位管线导致黑屏
+        if (rex::cvar::Query<std::string>("gpu_backend") == "vulkan" &&
+            rex::cvar::GetFlagSource("async_shader_compilation") == rex::cvar::Source::kDefault) {
+            rex::cvar::SetFlagByName("async_shader_compilation", "false");
+        }
     }
 
     /**

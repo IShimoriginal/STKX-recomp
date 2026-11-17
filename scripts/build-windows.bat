@@ -38,7 +38,7 @@ if defined REXGLUE_EXEC (
 echo [1/3] Configuring CMake (LLVM Clang + Ninja)...
 echo Logging to: %LOG_FILE%
 
-cmake --preset win-amd64 > "%LOG_FILE%" 2>&1
+cmake --preset win-amd64 -DREXGLUE_USE_D3D12=ON -DREXGLUE_USE_VULKAN=ON -DREXGLUE_ENABLE_FIDELITYFX=ON > "%LOG_FILE%" 2>&1
 if !ERRORLEVEL! neq 0 (
     echo [ERROR] CMake configuration failed!
     echo Check log: %LOG_FILE%
@@ -96,7 +96,7 @@ if !ERRORLEVEL! neq 0 (
 )
 
 echo.
-echo [3/3] Compiling Windows Native Targets (shutokou_battle_x, rexruntime, rexgpu-xenos)...
+echo [3/3] Compiling Windows Native Targets (shutokou_battle_x, Launcher, rexruntime, rexgpu-xenos)...
 
 REM Clean stale PCH caches to prevent Clang mtime mismatch
 if exist "out\build\win-amd64\src\codegen\CMakeFiles\rexcodegen.dir\Release\cmake_pch.hxx.pch" (
@@ -106,10 +106,10 @@ if exist "out\build\win-amd64\src\ui\CMakeFiles\rexui.dir\Release\cmake_pch.hxx.
     del /f /q "out\build\win-amd64\src\ui\CMakeFiles\rexui.dir\Release\cmake_pch.hxx.pch" >nul 2>nul
 )
 
-cmake --build out/build/win-amd64 --config Release --target shutokou_battle_x rexruntime rexgpu-xenos --parallel
+cmake --build out/build/win-amd64 --config Release --target shutokou_battle_x Launcher rexruntime rexgpu-xenos --parallel
 if !ERRORLEVEL! neq 0 (
     echo Retrying sequential link...
-    cmake --build out/build/win-amd64 --config Release --target shutokou_battle_x rexruntime rexgpu-xenos
+    cmake --build out/build/win-amd64 --config Release --target shutokou_battle_x Launcher rexruntime rexgpu-xenos
 )
 if !ERRORLEVEL! neq 0 (
     echo [ERROR] Build failed!
@@ -139,10 +139,11 @@ if defined OUT_EXE (
         if exist "out\win-amd64\Release\rexgpu-xenos.dll" copy /y "out\win-amd64\Release\rexgpu-xenos.dll" "D:\ShutokouBattleX\" >nul 2>nul
         if exist "out\win-amd64\Release\rexglue.exe" copy /y "out\win-amd64\Release\rexglue.exe" "D:\ShutokouBattleX\" >nul 2>nul
         if exist "out\win-amd64\Release\*.dll" copy /y "out\win-amd64\Release\*.dll" "D:\ShutokouBattleX\" >nul 2>nul
+        if exist "out\win-amd64\Release\Launcher.exe" copy /y "out\win-amd64\Release\Launcher.exe" "D:\ShutokouBattleX\Launcher.exe" >nul 2>nul
         echo @echo off > "D:\ShutokouBattleX\launch-game.bat"
         echo cd /d "%%~dp0" >> "D:\ShutokouBattleX\launch-game.bat"
         echo start "" "%%~dp0shutokou_battle_x.exe" >> "D:\ShutokouBattleX\launch-game.bat"
-        echo [OK] Updated shutokou_battle_x.exe, rexruntime.dll, rexgpu-xenos.dll in D:\ShutokouBattleX\
+        echo [OK] Updated shutokou_battle_x.exe, Launcher.exe, rexruntime.dll, rexgpu-xenos.dll in D:\ShutokouBattleX\
     )
 
     if exist "..\ShutokouBattleX\" if not exist "..\ShutokouBattleX\game_root\" if exist "game_root\" (

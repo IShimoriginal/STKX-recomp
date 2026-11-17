@@ -17,6 +17,10 @@ Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) ahead-of-time (AO
 
 ## 简体中文
 
+## 前言
+
+本项目95%以上修改依赖AI生成，仅作个人学习研究使用。本人不鼓励不支持非法下载及盗版，请从你拥有的合法游戏副本提取游戏本体档案!
+
 ### 快速上手
 
 #### 环境要求
@@ -59,8 +63,10 @@ scripts\build-windows.bat
 ### 项目特性与当前进度
 
 #### 基本特性
+- **DX12、Vulkan API支持（Vulkan仍在适配中，不推荐）**
+- **1X（720P）、2X（1440P）及 3X（2160P） 运行分辨率支持**
 - **30、40、60、120FPS 支持**
-- **1X 到 4X 运行分辨率支持**
+- **支持垂直同步开关**
 - **原生 Xinput 手柄支持**
 - **存档**
 - **其余 ReXGlue 原生支持的功能**
@@ -77,8 +83,9 @@ scripts\build-windows.bat
 - **部分运镜脚本在高帧率下会加速**：高帧率下运镜动画本身仍存在加速现象。
 - **路边空气墙指示牌箭头滚动加速**：赛道空气墙指示牌滚动动画受高帧率影响加速。
 - **车库 UI 底部滚动的 Tips 加速**：车库底部 2D UI 滚动提示条存在加速现象。
+- **Vulkan支持测试中**：使用Vulkan API时有可能遇到随机黑屏，待后续优化。
 
-> *未完整测试流程，不确保能完全通关。*
+> *未完整测试流程，不确保能完全通关,请随时保存。如游戏中遇到黑屏情况，请把游戏目录下的/Log目录下的对应日志与黑屏出现的场合发送到邮箱：ishimoriginal@proton.me*
 
 ---
 
@@ -113,6 +120,7 @@ scripts\build-windows.bat
 - **[ReXGlue](https://github.com/rexglue/rexglue-sdk)** — 提供 Xbox 360 静态重编译 SDK、运行时与 Xenos GPU 后端。
 - **[MCLA-recomp](https://github.com/arcanite24/MCLA-recomp)** — 提供 Xbox 360 赛车游戏静态重编译与高帧率适配参考。
 - **[pinyon-shift](https://github.com/arcanite24/pinyon-shift)** — 提供静态重编译工程结构与实现思路参考。
+- **[Google Gemini]** — 协助撰写代码及Debug。
 
 ---
 

@@ -142,6 +142,11 @@ call :CHECK_LIB "inja"         "thirdparty\inja\include\inja\inja.hpp"
 call :CHECK_LIB "libmspack"    "thirdparty\libmspack\cabextract\mspack\lzxd.c"
 call :CHECK_LIB "o1heap"       "thirdparty\o1heap\o1heap\o1heap.c"
 call :CHECK_LIB "FFmpeg"       "thirdparty\FFmpeg\libavutil\adler32.c"
+call :CHECK_LIB "vulkan-headers"          "thirdparty\vulkan-headers\include\vulkan\vulkan.h"
+call :CHECK_LIB "vulkan-memory-allocator" "thirdparty\vulkan-memory-allocator\include\vk_mem_alloc.h"
+call :CHECK_LIB "spirv-headers"           "thirdparty\spirv-headers\include\spirv\unified1\spirv.h"
+call :CHECK_LIB "spirv-tools"             "thirdparty\spirv-tools\include\spirv-tools\libspirv.h"
+call :CHECK_LIB "glslang"                 "thirdparty\glslang\SPIRV\SpvBuilder.h"
 
 echo.
 echo ==============================================================================
@@ -273,6 +278,11 @@ if not exist "%DOWNLOAD_DIR%" mkdir "%DOWNLOAD_DIR%"
         if not exist "thirdparty\libmspack\cabextract\mspack\lzxd.c" echo   - libmspack    : https://github.com/kyz/libmspack/archive/HEAD.zip
         if not exist "thirdparty\o1heap\o1heap\o1heap.c"             echo   - o1heap       : https://github.com/pavel-kirienko/o1heap/archive/HEAD.zip
         if not exist "thirdparty\FFmpeg\libavutil\adler32.c"         echo   - FFmpeg       : https://github.com/wmarti/FFmpeg/archive/refs/heads/xenia-ffmpeg-canary-full.zip
+        if not exist "thirdparty\vulkan-headers\include\vulkan\vulkan.h"            echo   - vulkan-headers          : https://github.com/KhronosGroup/Vulkan-Headers/archive/HEAD.zip
+        if not exist "thirdparty\vulkan-memory-allocator\include\vk_mem_alloc.h"    echo   - vulkan-memory-allocator : https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/HEAD.zip
+        if not exist "thirdparty\spirv-headers\include\spirv\unified1\spirv.h"      echo   - spirv-headers           : https://github.com/KhronosGroup/SPIRV-Headers/archive/HEAD.zip
+        if not exist "thirdparty\spirv-tools\include\spirv-tools\libspirv.h"        echo   - spirv-tools             : https://github.com/KhronosGroup/SPIRV-Tools/archive/HEAD.zip
+        if not exist "thirdparty\glslang\SPIRV\SpvBuilder.h"                        echo   - glslang                 : https://github.com/KhronosGroup/glslang/archive/refs/tags/11.13.0.zip
     )
 )
 
@@ -343,7 +353,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "  @{ name='inja';         sentinel='thirdparty\inja\include\inja\inja.hpp';         url='https://github.com/pantor/inja/archive/HEAD.zip'; file='inja.zip' }," ^
   "  @{ name='libmspack';    sentinel='thirdparty\libmspack\cabextract\mspack\lzxd.c'; url='https://github.com/kyz/libmspack/archive/HEAD.zip'; file='libmspack.zip' }," ^
   "  @{ name='o1heap';       sentinel='thirdparty\o1heap\o1heap\o1heap.c';             url='https://github.com/pavel-kirienko/o1heap/archive/HEAD.zip'; file='o1heap.zip' }," ^
-  "  @{ name='FFmpeg';       sentinel='thirdparty\FFmpeg\libavutil\adler32.c';         url='https://github.com/wmarti/FFmpeg/archive/refs/heads/xenia-ffmpeg-canary-full.zip'; file='FFmpeg-xenia-ffmpeg-canary-full.zip' }" ^
+  "  @{ name='FFmpeg';       sentinel='thirdparty\FFmpeg\libavutil\adler32.c';         url='https://github.com/wmarti/FFmpeg/archive/refs/heads/xenia-ffmpeg-canary-full.zip'; file='FFmpeg-xenia-ffmpeg-canary-full.zip' }," ^
+  "  @{ name='vulkan-headers';          sentinel='thirdparty\vulkan-headers\include\vulkan\vulkan.h';         url='https://github.com/KhronosGroup/Vulkan-Headers/archive/HEAD.zip'; file='vulkan-headers.zip' }," ^
+  "  @{ name='vulkan-memory-allocator'; sentinel='thirdparty\vulkan-memory-allocator\include\vk_mem_alloc.h'; url='https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/HEAD.zip'; file='vulkan-memory-allocator.zip' }," ^
+  "  @{ name='spirv-headers';           sentinel='thirdparty\spirv-headers\include\spirv\unified1\spirv.h';   url='https://github.com/KhronosGroup/SPIRV-Headers/archive/HEAD.zip'; file='spirv-headers.zip' }," ^
+  "  @{ name='spirv-tools';             sentinel='thirdparty\spirv-tools\include\spirv-tools\libspirv.h';     url='https://github.com/KhronosGroup/SPIRV-Tools/archive/HEAD.zip'; file='spirv-tools.zip' }," ^
+  "  @{ name='glslang';                 sentinel='thirdparty\glslang\SPIRV\SpvBuilder.h';                     url='https://github.com/KhronosGroup/glslang/archive/refs/tags/11.13.0.zip'; file='glslang-11.13.0.zip' }" ^
   ");" ^
   "foreach ($it in $items) {" ^
   "  if (Test-Path $it.sentinel) { continue }" ^

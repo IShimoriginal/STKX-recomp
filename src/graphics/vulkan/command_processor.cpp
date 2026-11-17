@@ -55,12 +55,12 @@ REXCVAR_DEFINE_BOOL(vulkan_readback_memexport, false, "GPU/Vulkan",
                     "Read data written by memory export in shaders on the CPU")
     .lifecycle(rex::cvar::Lifecycle::kHotReload);
 
-REXCVAR_DEFINE_BOOL(vulkan_async_skip_incomplete_frames, true, "GPU/Vulkan",
+REXCVAR_DEFINE_BOOL(vulkan_async_skip_incomplete_frames, false, "GPU/Vulkan",
                     "When async shader compilation is enabled, skip presenting frames that "
                     "used placeholder pipelines to avoid visible flashing")
     .lifecycle(rex::cvar::Lifecycle::kHotReload);
 
-REXCVAR_DEFINE_BOOL(vulkan_submit_on_primary_buffer_end, true, "GPU/Vulkan",
+REXCVAR_DEFINE_BOOL(vulkan_submit_on_primary_buffer_end, false, "GPU/Vulkan",
                     "Submit command buffer when PM4 primary buffer ends")
     .lifecycle(rex::cvar::Lifecycle::kHotReload);
 
@@ -167,6 +167,15 @@ constexpr TBuiltInResource kGlslangDefaultTBuiltInResource = {
     /* .maxTaskWorkGroupSizeY_NV = */ 1,
     /* .maxTaskWorkGroupSizeZ_NV = */ 1,
     /* .maxMeshViewCountNV = */ 4,
+    /* .maxMeshOutputVerticesEXT = */ 256,
+    /* .maxMeshOutputPrimitivesEXT = */ 512,
+    /* .maxMeshWorkGroupSizeX_EXT = */ 32,
+    /* .maxMeshWorkGroupSizeY_EXT = */ 1,
+    /* .maxMeshWorkGroupSizeZ_EXT = */ 1,
+    /* .maxTaskWorkGroupSizeX_EXT = */ 32,
+    /* .maxTaskWorkGroupSizeY_EXT = */ 1,
+    /* .maxTaskWorkGroupSizeZ_EXT = */ 1,
+    /* .maxMeshViewCountEXT = */ 4,
     /* .maxDualSourceDrawBuffersEXT = */ 1,
     /* .limits = */
     {

@@ -21,10 +21,11 @@ set(REXGLUE_INSTALL_TARGETS
 )
 
 if(REXGLUE_USE_VULKAN)
-    list(APPEND REXGLUE_INSTALL_TARGETS
-        SPIRV glslang MachineIndependent GenericCodeGen OSDependent OGLCompiler  # glslang
-        spirv-tools-headers
-    )
+    foreach(_vk_target SPIRV glslang MachineIndependent GenericCodeGen OSDependent OGLCompiler spirv-tools-headers)
+        if(TARGET ${_vk_target})
+            list(APPEND REXGLUE_INSTALL_TARGETS ${_vk_target})
+        endif()
+    endforeach()
 endif()
 
 if(REXGLUE_USE_D3D12)

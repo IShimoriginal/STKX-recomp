@@ -20,7 +20,7 @@ project(ReXGlue
 #==========================================================
 option(REXGLUE_BUILD_TESTS       "Build PPC instruction and unit tests" OFF)
 option(REXGLUE_ENABLE_SANITIZERS "Enable UndefinedBehaviorSanitizer" OFF)
-option(REXGLUE_ENABLE_FIDELITYFX "Enable optional AMD FidelityFX integration (experimental)" OFF)
+option(REXGLUE_ENABLE_FIDELITYFX "Enable optional AMD FidelityFX integration (experimental)" ON)
 option(REXGLUE_ENABLE_TRACY                "Enable Tracy profiler integration" ON)
 option(REXGLUE_ENABLE_PERF_COUNTERS        "Enable lightweight perf counter registry and overlay" ON)
 # Propagate profiling defines globally (compiled out in Release)
@@ -36,7 +36,7 @@ endif()
 # Vulkan: Cross-platform, ON by default on Linux, OFF by default on Windows.
 if(WIN32)
     option(REXGLUE_USE_D3D12  "Enable D3D12 graphics backend" ON)
-    option(REXGLUE_USE_VULKAN "Enable Vulkan graphics backend" OFF)
+    option(REXGLUE_USE_VULKAN "Enable Vulkan graphics backend" ON)
 else()
     set(REXGLUE_USE_D3D12 OFF)
     option(REXGLUE_USE_VULKAN "Enable Vulkan graphics backend" ON)
@@ -335,4 +335,9 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/entrypoint/sources.cmake")
     target_link_libraries(shutokou_battle_x PRIVATE
         rex::runtime
     )
+endif()
+
+if(WIN32)
+    add_executable(Launcher WIN32 src/launcher/main.cpp)
+    target_link_libraries(Launcher PRIVATE user32 gdi32 comctl32)
 endif()
