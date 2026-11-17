@@ -21,7 +21,19 @@ Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) ahead-of-time (AO
 
 本项目 95% 以上修改依赖 AI 生成，仅作个人学习研究使用。本人不鼓励、不支持非法下载及盗版，请从您拥有的合法正版游戏副本提取游戏本体档案！
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/37ac4718-fbd9-4f28-be9f-46086c7b8f78" width="48%" alt="Copy" />
+  <img src="https://github.com/user-attachments/assets/20acf720-86ca-4939-9b2f-3814e0a70dce" width="48%" alt="Disc" />
+</p>
+
 > **格式说明**：本项目**仅支持已解包的 XEX 格式游戏副本**（需包含 `default.xex` 与 `DATA/` 目录），**不支持 `.iso` 光盘镜像格式**。
+
+---
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e18e4109-238d-4ed9-a37c-5bfe6298b5a0" width="32%" alt="Screenshot 1" />
+  <img src="https://github.com/user-attachments/assets/939820f0-b8fd-422e-94c8-211b631e6bb2" width="32%" alt="Screenshot 2" />
+  <img src="https://github.com/user-attachments/assets/962a4e8b-aa9f-4053-8e7d-2b5ee366c0f6" width="32%" alt="Screenshot 3" />
+</p>
 
 ---
 
