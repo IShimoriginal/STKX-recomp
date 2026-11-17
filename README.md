@@ -17,28 +17,42 @@ Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) ahead-of-time (AO
 
 ## 简体中文
 
-## 前言
+### 前言
 
-本项目95%以上修改依赖AI生成，仅作个人学习研究使用。本人不鼓励不支持非法下载及盗版，请从你拥有的合法游戏副本提取游戏本体档案!
+本项目 95% 以上修改依赖 AI 生成，仅作个人学习研究使用。本人不鼓励、不支持非法下载及盗版，请从您拥有的合法正版游戏副本提取游戏本体档案！
+
+> **格式说明**：本项目**仅支持已解包的 XEX 格式游戏副本**（需包含 `default.xex` 与 `DATA/` 目录），**不支持 `.iso` 光盘镜像格式**。
+
+---
 
 ### 快速上手
 
 #### 环境要求
 - **操作系统**：Windows 10 / 11 (x64)
-- **编译工具链**：Git、CMake (3.25+)、Ninja、LLVM/Clang (`clang` / `clang++`)
+- **编译工具链**：Git、CMake (3.25+)、Ninja、LLVM/Clang (`clang` / `clang++`)、VS2022 / MSVC Build Tools
+
+#### 0. 准备正版游戏文件
+请自行搜索相关教程，将您合法持有的 Xbox 360 正版《首都高バトルX》（Title ID: `474507D1`）光盘通过 Redump 等合法方式提取到电脑本地，并解包为 XEX 格式文件（包含 `default.xex` 与 `DATA/` 文件夹；不接受 `.iso` 镜像）。
 
 #### 1. 放置游戏文件并检测环境
-将您从正版 Xbox 360《首都高バトルX》（Title ID: `474507D1`）光盘中提取的文件放置于 `game_root/` 目录：
+将提取并解包后的游戏文件放置于 `game_root/` 目录：
 - `game_root/default.xex`
 - `game_root/DATA/`
 
-然后运行环境与资源检测脚本（会自动检查 `game_root/` 与编译工具链）：
+然后运行环境与资源检测脚本（会自动检查 `game_root/`、编译工具链与 `thirdparty/` 依赖）：
 ```cmd
 scripts\setup-game-assets.bat
 ```
+当脚本检测到缺少工具链或第三方依赖时，会提供以下安装选项：
+- **网络良好时**：选择 `[1]` 一键自动下载并安装缺失组件（通过 `winget` 与 `git`）。
+- **网络条件较差 / 下载困难时（离线手动包指引）**：
+  1. 在脚本菜单中选择 **`[2]`**，脚本会输出所有缺失组件的直链，并同步保存至 `downloads\DOWNLOAD_LINKS.txt`。
+  2. **编译工具链安装包**（Git、CMake、Ninja、LLVM/Clang、VS2022 Build Tools）：根据 `downloads\DOWNLOAD_LINKS.txt` 中的链接，使用浏览器或下载工具下载后直接运行安装即可。
+  3. **第三方源码依赖压缩包（`.zip`）**：根据链接下载对应的 `.zip` 压缩包，**保持原文件名且不要手动解压**，全部放入项目根目录下的 **`downloads\`** 文件夹。
+  4. 放好所有压缩包后，按脚本提示输入 **`Y`**（或重新运行 `scripts\setup-game-assets.bat` 后选择 **`[3]`**），脚本会自动将 `downloads\` 中的所有 `.zip` 统一解压并安装到 `thirdparty\`。
 
 #### 2. 下载第三方依赖
-拉取 `thirdparty/` 所需的第三方库（后续 `run-codegen.bat` 也会自动检测并补全）：
+若未在第 1 步完成全部第三方依赖拉取，可单独运行以下命令通过 Git 补全 `thirdparty/`（后续 `run-codegen.bat` 也会自动检测并补全）：
 ```cmd
 scripts\download-dependencies.bat
 ```
@@ -53,21 +67,22 @@ scripts\run-codegen.bat
 ```cmd
 scripts\build-windows.bat
 ```
-编译完成后，最终可执行文件与运行库位于：
+编译完成后，最终可执行文件、启动器与运行库位于：
 - `out\win-amd64\Release\shutokou_battle_x.exe`
+- `out\win-amd64\Release\Launcher.exe`
 
-*(可选：若上一级目录存在 `..\ShutokouBattleX\`，构建脚本会自动将 `shutokou_battle_x.exe`、所需 `.dll` 及 `rexglue.exe` 同步到该目录并生成 `launch-game.bat`；若该目录下尚无 `game_root\`，也会自动复制过去。)*
+*(可选：若上一级目录存在 `..\ShutokouBattleX\`，构建脚本会自动将 `shutokou_battle_x.exe`、`Launcher.exe`、所需 `.dll` 及 `rexglue.exe` 同步到该目录并生成 `launch-game.bat`；若该目录下尚无 `game_root\`，也会自动复制过去。)*
 
 ---
 
 ### 项目特性与当前进度
 
 #### 基本特性
-- **DX12、Vulkan API支持（Vulkan仍在适配中，不推荐）**
-- **1X（720P）、2X（1440P）及 3X（2160P） 运行分辨率支持**
+- **DX12、Vulkan API 支持（Vulkan 仍在适配中，不推荐）**
+- **1X（720P）、2X（1440P）及 3X（2160P）运行分辨率支持**
 - **30、40、60、120FPS 支持**
 - **支持垂直同步开关**
-- **原生 Xinput 手柄支持**
+- **原生 XInput 手柄支持**
 - **存档**
 - **其余 ReXGlue 原生支持的功能**
 
@@ -83,9 +98,9 @@ scripts\build-windows.bat
 - **部分运镜脚本在高帧率下会加速**：高帧率下运镜动画本身仍存在加速现象。
 - **路边空气墙指示牌箭头滚动加速**：赛道空气墙指示牌滚动动画受高帧率影响加速。
 - **车库 UI 底部滚动的 Tips 加速**：车库底部 2D UI 滚动提示条存在加速现象。
-- **Vulkan支持测试中**：使用Vulkan API时有可能遇到随机黑屏，待后续优化。
+- **Vulkan 支持测试中**：使用 Vulkan API 时有可能遇到随机黑屏，待后续优化。
 
-> *未完整测试流程，不确保能完全通关,请随时保存。如游戏中遇到黑屏情况，请把游戏目录下的/Log目录下的对应日志与黑屏出现的场合发送到邮箱：ishimoriginal@proton.me*
+> *未完整测试流程，不确保能完全通关，请随时保存。如游戏中遇到黑屏情况，请把游戏目录下的 `/logs` 目录中的对应日志与黑屏出现的场合发送到邮箱：`ishimoriginal@proton.me`*
 
 ---
 
@@ -101,14 +116,16 @@ scripts\build-windows.bat
 │   └── shutokou_battle_x_app.h   # 首都高赛车X 宿主应用程序定义 (ReXApp)
 ├── src/
 │   ├── main.cpp                  # 程序入口点 (REX_DEFINE_APP)
+│   ├── launcher/
+│   │   └── main.cpp              # 原生 Win32 GUI 启动器 (Launcher.exe)
 │   └── patches/
 │       ├── framerate_patch.h/.cpp # 帧率与物理步长补丁
 │       └── wheel_input.h/.cpp     # 方向盘力反馈与模拟线性输入
 ├── scripts/
-│   ├── build-windows.bat         # 一键编译 Windows 客户端脚本
+│   ├── build-windows.bat         # 一键编译 Windows 客户端与启动器脚本
 │   ├── download-dependencies.bat # 第三方依赖下载脚本
 │   ├── run-codegen.bat           # 一键运行 AOT 代码生成脚本
-│   └── setup-game-assets.bat     # 资源目录与环境检测向导脚本
+│   └── setup-game-assets.bat     # 资源目录、工具链与离线依赖安装向导脚本
 └── docs/
     └── BUILD_WINDOWS.md          # 详细中文编译指南与常见问题
 ```
@@ -120,7 +137,7 @@ scripts\build-windows.bat
 - **[ReXGlue](https://github.com/rexglue/rexglue-sdk)** — 提供 Xbox 360 静态重编译 SDK、运行时与 Xenos GPU 后端。
 - **[MCLA-recomp](https://github.com/arcanite24/MCLA-recomp)** — 提供 Xbox 360 赛车游戏静态重编译与高帧率适配参考。
 - **[pinyon-shift](https://github.com/arcanite24/pinyon-shift)** — 提供静态重编译工程结构与实现思路参考。
-- **[Google Gemini]** — 协助撰写代码及Debug。
+- **[Google Gemini](https://gemini.google.com/) (Google DeepMind)** — 协助撰写代码及 Debug。
 
 ---
 
@@ -132,24 +149,42 @@ scripts\build-windows.bat
 
 ## English
 
+### Preface
+
+Over 95% of the modifications in this project were generated with AI assistance and are intended solely for personal learning and research. Illegal downloading and piracy are neither encouraged nor supported—please extract the game files only from a legal copy that you legitimately own!
+
+> **Format Notice:** Only **unpacked XEX-format game copies** (containing `default.xex` and the `DATA/` directory) are supported. **`.iso` disc image files are NOT supported.**
+
+---
+
 ### Quick Start
 
 #### Requirements
 - **OS**: Windows 10 / 11 (x64)
-- **Toolchain**: Git, CMake (3.25+), Ninja, LLVM/Clang (`clang` / `clang++`)
+- **Toolchain**: Git, CMake (3.25+), Ninja, LLVM/Clang (`clang` / `clang++`), VS2022 / MSVC Build Tools
+
+#### 0. Prepare Legal Game Files
+Please search online for guides on how to dump (e.g., via Redump) your legally owned Xbox 360 disc of **Shutokou Battle X** (Title ID: `474507D1`) to your PC and unpack it into XEX format (containing `default.xex` and the `DATA/` directory; `.iso` images are not supported).
 
 #### 1. Place Game Assets & Check Environment
-Extract your legal copy of the Xbox 360 disc **Shutokou Battle X** (Title ID: `474507D1`) into the `game_root/` directory:
+Place the extracted XEX game files into the `game_root/` directory:
 - `game_root/default.xex`
 - `game_root/DATA/`
 
-Then run the environment and asset verification script:
+Then run the environment and asset verification wizard (checks `game_root/`, toolchain, and `thirdparty/` libraries):
 ```cmd
 scripts\setup-game-assets.bat
 ```
+If missing tools or libraries are detected, the script provides an interactive menu:
+- **If your network connection is stable**: select `[1]` for one-click automatic installation via `winget` and `git`.
+- **If your network connection is slow or unstable (offline/manual download guide)**:
+  1. Select **`[2]`** in the menu to print all missing download URLs and export them to `downloads\DOWNLOAD_LINKS.txt`.
+  2. **Toolchain installers** (Git, CMake, Ninja, LLVM/Clang, VS2022 Build Tools): download them using your browser or download manager from the links in `downloads\DOWNLOAD_LINKS.txt` and run the installers directly.
+  3. **Third-party source archives (`.zip`)**: download the `.zip` archives using the links in `downloads\DOWNLOAD_LINKS.txt` and place them directly into the **`downloads\`** folder in the project root (**keep the original `.zip` filenames and do NOT extract them manually**).
+  4. Once all archives are in place, enter **`Y`** at the prompt (or re-run `scripts\setup-game-assets.bat` and select **`[3]`**) to automatically extract and install all `.zip` archives from `downloads\` into `thirdparty\`.
 
 #### 2. Download Third-Party Dependencies
-Fetch the required libraries into `thirdparty/` (`run-codegen.bat` will also check and fetch them automatically if missing):
+If you did not fetch the third-party libraries in Step 1, you can run the dependency script directly (`run-codegen.bat` will also check and fetch them automatically if missing):
 ```cmd
 scripts\download-dependencies.bat
 ```
@@ -164,18 +199,21 @@ scripts\run-codegen.bat
 ```cmd
 scripts\build-windows.bat
 ```
-Once built, the executable and runtime DLLs are located at:
+Once built, the executable, native launcher, and runtime DLLs are located at:
 - `out\win-amd64\Release\shutokou_battle_x.exe`
+- `out\win-amd64\Release\Launcher.exe`
 
-*(Optional: if `..\ShutokouBattleX\` exists in the parent directory, the build script automatically syncs `shutokou_battle_x.exe`, required `.dll` files, and `rexglue.exe` there, generates `launch-game.bat`, and copies `game_root\` if `..\ShutokouBattleX\game_root\` does not exist yet.)*
+*(Optional: if `..\ShutokouBattleX\` exists in the parent directory, the build script automatically syncs `shutokou_battle_x.exe`, `Launcher.exe`, required `.dll` files, and `rexglue.exe` there, generates `launch-game.bat`, and copies `game_root\` if `..\ShutokouBattleX\game_root\` does not exist yet.)*
 
 ---
 
 ### Features & Status
 
 #### Basic Features
-- **30 / 40 / 60 / 120 FPS support**
-- **1x to 4x internal resolution scaling**
+- **DirectX 12 & Vulkan API support (Vulkan is still being adapted, not recommended)**
+- **1x (720p), 2x (1440p), and 3x (2160p) internal resolution support**
+- **30, 40, 60, and 120 FPS support**
+- **VSync toggle support**
 - **Native XInput controller support**
 - **Save data support**
 - **Other native ReXGlue features**
@@ -192,8 +230,9 @@ Once built, the executable and runtime DLLs are located at:
 - **Some Camera Scripts Speed Up at High FPS**: Certain real-time camera animations still play faster at high framerates.
 - **Trackside Barrier Arrow Scroll Speed**: Barrier indicator scrolling animations on the course are still sped up by high framerates.
 - **Garage Bottom Scrolling Tips Speed**: The 2D scrolling tips bar at the bottom of the garage UI is still sped up.
+- **Vulkan Support Under Testing**: Random black screens may occur when using the Vulkan API; further optimization is pending.
 
-> *Full playthrough has not been tested; completion from start to finish is not guaranteed.*
+> *Full playthrough has not been tested; completion from start to finish is not guaranteed—please save frequently. If you encounter a black screen during gameplay, please send the corresponding log file from the `/logs` directory in your game folder along with a description of when the black screen occurred to: `ishimoriginal@proton.me`*
 
 ---
 
@@ -209,6 +248,8 @@ Once built, the executable and runtime DLLs are located at:
 │   └── shutokou_battle_x_app.h   # Host application definition (ReXApp)
 ├── src/
 │   ├── main.cpp                  # Entry point (REX_DEFINE_APP)
+│   ├── launcher/
+│   │   └── main.cpp              # Native Win32 GUI launcher (Launcher.exe)
 │   └── patches/
 │       ├── framerate_patch.h/.cpp # Framerate & physics delta-time patches
 │       └── wheel_input.h/.cpp     # Force-feedback wheel & analog input
@@ -216,7 +257,7 @@ Once built, the executable and runtime DLLs are located at:
 │   ├── build-windows.bat         # One-click Windows build script
 │   ├── download-dependencies.bat # Third-party dependency fetcher
 │   ├── run-codegen.bat           # One-click AOT codegen script
-│   └── setup-game-assets.bat     # Asset & toolchain verification wizard
+│   └── setup-game-assets.bat     # Asset, toolchain & offline dependency wizard
 └── docs/
     └── BUILD_WINDOWS.md          # Detailed build guide & FAQ
 ```
@@ -228,6 +269,7 @@ Once built, the executable and runtime DLLs are located at:
 - **[ReXGlue](https://github.com/rexglue/rexglue-sdk)** — Xbox 360 static recompilation SDK, runtime, and Xenos GPU backend.
 - **[MCLA-recomp](https://github.com/arcanite24/MCLA-recomp)** — Reference for Xbox 360 racing game static recompilation and high-FPS adaptation.
 - **[pinyon-shift](https://github.com/arcanite24/pinyon-shift)** — Reference for static recompilation project structure and implementation.
+- **[Google Gemini](https://gemini.google.com/) (Google DeepMind)** — Assisted with code generation and debugging.
 
 ---
 
