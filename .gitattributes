@@ -1,5 +1,7 @@
-# Enforce LF line endings for all text files
+# Enforce LF line endings for all text files (except Windows batch scripts which require CRLF in cmd.exe)
 * text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
 
 # Explicitly mark binary files
 *.png binary
