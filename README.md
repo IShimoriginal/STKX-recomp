@@ -276,3 +276,9 @@ Once built, the executable, native launcher, and runtime DLLs are located at:
 ### Disclaimer
 
 This project is an independent open-source research and static recompilation effort. It **does not** include any copyrighted game assets (such as original executables, 3D models, audio, or textures). Users must legally own an Xbox 360 copy of **Shutokou Battle X** (Title ID: `474507D1`) and extract the data locally. Only the Japanese release has been developed and tested; other regional releases have not been tested.
+
+## ☕ Support
+
+This project is completely free and open-source. If you enjoy playing *Shutokou Battle X* on PC and would like to support my reverse-engineering work (entirely optional):
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/ishimoriginal)
