@@ -15,34 +15,59 @@ Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) & [ShiftGlue](htt
 
 ## 快速上手 (Quick Start)
 
-完整的中文与英文编译步骤详见 [docs/BUILD_WINDOWS.md](docs/BUILD_WINDOWS.md)。
+### 环境要求
+- **操作系统**：Windows 10 / 11 (x64)
+- **编译工具链**：Git、CMake (3.25+)、Ninja、LLVM/Clang (`clang` / `clang++`)
 
-### 1. 放置游戏文件
-将您从正版 Xbox 360 光盘中提取的文件放置于 `game_root/` 目录：
+### 1. 放置游戏文件并检测环境
+将您从正版 Xbox 360《首都高バトルX》（Title ID: `474507D1`）光盘中提取的文件放置于 `game_root/` 目录：
 - `game_root/default.xex`
-- `game_root/MEDIA/`
+- `game_root/DATA/`
 
-### 2. 运行代码生成 (AOT Codegen)
+然后运行环境与资源检测脚本（会自动检查 `game_root/` 与编译工具链）：
+```cmd
+scripts\setup-game-assets.bat
+```
+
+### 2. 下载第三方依赖
+拉取 `thirdparty/` 所需的第三方库（后续 `run-codegen.bat` 也会自动检测并补全）：
+```cmd
+scripts\download-dependencies.bat
+```
+
+### 3. 运行代码生成 (AOT Codegen)
 ```cmd
 scripts\run-codegen.bat
 ```
-*(使用 ReXGlue 工具链将 PowerPC 大端机器码静态翻译为高度优化的 C++23 代码)*
+*(使用 `rexglue.exe` 根据 `manifest.toml` 将 PowerPC 机器码静态翻译为 C++ 代码，输出至 `src/generated/entrypoint/`)*
 
-### 3. 编译 Windows 原生游戏程序
+### 4. 编译 Windows 原生程序
 ```cmd
 scripts\build-windows.bat
 ```
-生成的可执行文件位于：
-`build\windows-msvc-release\Release\shutokou_battle_x.exe`
+编译完成后，最终可执行文件与运行库位于：
+- `out\win-amd64\Release\shutokou_battle_x.exe`
+
+*(可选：若上一级目录存在 `..\ShutokouBattleX\`，构建脚本会自动将 `shutokou_battle_x.exe`、所需 `.dll` 及 `rexglue.exe` 同步到该目录并生成 `launch-game.bat`；若该目录下尚无 `game_root\`，也会自动复制过去。)*
 
 ---
 
-## 项目特性 (Features)
+## 项目特性与当前进度 (Features & Status)
 
-- **60 FPS / 120 FPS 高帧率物理修复**: 解除原始 Xbox 360 30 FPS 限制，物理步长自适应计算。
-- **超宽屏与 4K 支持**: 支持 21:9、32:9 超宽分辨率与 AMD FidelityFX Super Resolution (FSR)。
-- **力反馈方向盘集成**: 针对首都高高速公路漂移调校的 DirectInput / XInput 转向回正力矩。
-- **现代化图形后端**: 支持 Windows Direct3D 12 与跨平台 Vulkan 1.3。
+### 已实现并实测通过
+- **高帧率与物理帧率解耦**：解除原版 Xbox 360 30 FPS 限制，支持高帧率原生运行。
+- **核心流程与计时同步**：开场 Logo、非车库菜单动画、比赛 `3-2-1-GO` 倒计时及 4 秒等待、Time Attack 计时器与油门加速速度均已正常。
+- **菜单光标连发限速**：修复了高帧率下按住方向键时菜单光标连发过快的问题。
+- **车库车辆转盘速度修复**：修复了车库车辆展示转盘在高帧率下旋转过快的问题。
+- **战斗 SP 扣血速度修复**：修复了战斗中敌我双方 SP 值扣减随帧率加速的问题。
+- **Direct3D 12 原生渲染**：基于 ReXGlue Xenos GPU 后端在 Windows 上通过 Direct3D 12 原生渲染。
+
+### 仍未实现 / 待解决问题
+- **战斗开始即时演算运镜速度（高优先级）**：触发战斗到正式开跑的 4 秒等待时间已正常，但运镜动画本身仍存在加速现象。
+- **路边空气墙指示牌箭头滚动速度（低优先级）**：赛道空气墙指示牌滚动动画仍受高帧率影响加速。
+- **车库 UI 底部滚动 Tips 速度（低优先级）**：车库底部 2D UI 滚动提示条仍存在加速现象。
+- **非整数内部分辨率与超分管线**：ReXGlue 后端仅支持整数倍内部分辨率缩放（不支持 `1.25x`/`1.5x` 或热切换），且当前未内置 FSR1/FSR2/CAS 超分后处理管线。
+- **偶发帧时间窄尖峰（待观察）**：车库等场景在高帧率下偶发帧时间窄尖峰。
 
 ---
 
