@@ -1,19 +1,21 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+title Shutokou Battle X - Windows Native Builder / Windows 原生编译构建工具
 
 cd /d "%~dp0.."
 
 if not exist "logs" mkdir "logs"
 set "LOG_FILE=%CD%\logs\build_latest.log"
 
-:: 清空或初始化最新日志文件
+:: Initialize latest log file
 type nul > "%LOG_FILE%"
 
 echo ==============================================================================
 echo   Shutokou Battle X [首都高赛车X] - Windows Native Builder
-echo   Root: %CD%
-echo   Log:  %LOG_FILE%
+echo   Windows Native Executable ^& Launcher Builder / Windows 原生程序编译构建工具
+echo   Root / 根目录: %CD%
+echo   Log  / 日志  : %LOG_FILE%
 echo ==============================================================================
 echo.
 
@@ -30,8 +32,9 @@ if defined REXGLUE_EXEC (
     echo [0/2] Syncing recompiled functions from manifest.toml via !REXGLUE_EXEC!...
     "!REXGLUE_EXEC!" codegen manifest.toml --ignore-stamp >> "%LOG_FILE%" 2>&1
 ) else if not exist "src\generated\entrypoint\shutokou_battle_x_init.h" (
-    echo [WARNING] Missing src\generated\entrypoint sources.
+    echo [WARNING] Missing src\generated\entrypoint sources. / 未检测到已生成的入口源码。
     echo If codegen has not run yet, run: scripts\run-codegen.bat
+    echo 若尚未执行代码生成，请先运行: scripts\run-codegen.bat
     echo.
 )
 
@@ -40,8 +43,8 @@ echo Logging to: %LOG_FILE%
 
 cmake --preset win-amd64 -DREXGLUE_USE_D3D12=ON -DREXGLUE_USE_VULKAN=ON -DREXGLUE_ENABLE_FIDELITYFX=ON > "%LOG_FILE%" 2>&1
 if !ERRORLEVEL! neq 0 (
-    echo [ERROR] CMake configuration failed!
-    echo Check log: %LOG_FILE%
+    echo [ERROR] CMake configuration failed. / CMake 配置失败！
+    echo Check log / 请检查日志: %LOG_FILE%
     echo.
     echo --- Error Summary ---
     powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
@@ -53,8 +56,8 @@ echo [2/3] Checking recompiler toolchain and syncing codegen...
 echo Updating rexglue recompiler tool...
 cmake --build out/build/win-amd64 --config Release --target rexglue >> "%LOG_FILE%" 2>&1
 if !ERRORLEVEL! neq 0 (
-    echo [ERROR] Failed to build rexglue.exe!
-    echo Check log: %LOG_FILE%
+    echo [ERROR] Failed to build rexglue.exe! / 编译 rexglue.exe 失败！
+    echo Check log / 请检查日志: %LOG_FILE%
     echo.
     echo --- Error Summary ---
     powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
@@ -72,14 +75,16 @@ if not defined REXGLUE_EXEC if exist "dist\rexglue.exe" set "REXGLUE_EXEC=dist\r
 if not defined REXGLUE_EXEC if exist "D:\ShutokouBattleX\rexglue.exe" set "REXGLUE_EXEC=D:\ShutokouBattleX\rexglue.exe"
 
 if not defined REXGLUE_EXEC (
-    echo [ERROR] rexglue.exe not found! Cannot synchronize manifest.toml.
+    echo [ERROR] rexglue.exe not found. Cannot synchronize manifest.toml.
+    echo [错误]  未找到 rexglue.exe，无法同步 manifest.toml！
     goto :script_exit
 )
 
 echo [Codegen] Translating PPC functions via !REXGLUE_EXEC!...
 "!REXGLUE_EXEC!" codegen manifest.toml --ignore-stamp
 if !ERRORLEVEL! neq 0 (
-    echo [ERROR] Codegen failed! Refusing to build stale generated files.
+    echo [ERROR] Codegen failed. Refusing to build stale generated files.
+    echo [错误]  代码生成失败！已中止编译以避免使用过期源码。
     goto :script_exit
 )
 echo [OK] Codegen synchronized successfully.
@@ -90,7 +95,8 @@ if exist "D:\ShutokouBattleX" (
 REM Refresh CMake configuration so any newly generated sources.cmake entries are included
 cmake --preset win-amd64 >> "%LOG_FILE%" 2>&1
 if !ERRORLEVEL! neq 0 (
-    echo [ERROR] CMake reconfiguration after codegen failed! Check %LOG_FILE%
+    echo [ERROR] CMake reconfiguration after codegen failed. Check %LOG_FILE%
+    echo [错误]  代码生成后重新配置 CMake 失败！请查看 %LOG_FILE%
     powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
     goto :script_exit
 )
@@ -112,13 +118,13 @@ if !ERRORLEVEL! neq 0 (
     cmake --build out/build/win-amd64 --config Release --target shutokou_battle_x Launcher rexruntime rexgpu-xenos
 )
 if !ERRORLEVEL! neq 0 (
-    echo [ERROR] Build failed!
+    echo [ERROR] Build failed. / 编译失败！请检查日志: %LOG_FILE%
     goto :script_exit
 )
 
 echo.
 echo ==============================================================================
-echo [SUCCESS] Build completed successfully!
+echo [SUCCESS] Build completed successfully. / 编译构建成功完成！
 
 set "OUT_EXE="
 if exist "out\win-amd64\Release\shutokou_battle_x.exe" set "OUT_EXE=out\win-amd64\Release\shutokou_battle_x.exe"
@@ -129,7 +135,7 @@ if not defined OUT_EXE if exist "build\Release\shutokou_battle_x.exe" set "OUT_E
 if not defined OUT_EXE if exist "build\shutokou_battle_x.exe" set "OUT_EXE=build\shutokou_battle_x.exe"
 
 if defined OUT_EXE (
-    echo Executable: %CD%\!OUT_EXE!
+    echo Executable / 可执行文件: %CD%\!OUT_EXE!
 
     REM Auto-deploy to D:\ShutokouBattleX if directory exists
     if exist "D:\ShutokouBattleX" (
@@ -159,14 +165,15 @@ if defined OUT_EXE (
 
 echo.
 echo Features ready:
-echo   - Direct3D 12 Native Rendering (RTX 4090 / 60-120 FPS)
+echo   - Direct3D 12 ^& Vulkan Native Rendering + FSR 1 Upscaling
+echo   - Native Win32 GUI Launcher (Launcher.exe)
 echo   - Zero-page memory protection fix (null dereference immunity)
 echo   - Full indirect call table for entrypoint functions
 echo   - Dynamic physical delta timing (stable high speed physics)
 echo.
-echo Log file: %LOG_FILE%
+echo Log file / 日志文件: %LOG_FILE%
 echo ==============================================================================
 
 :script_exit
 echo.
-pause
+set /p "_EXIT_WAIT=Press Enter to close this window / 请按 Enter 键关闭窗口..."

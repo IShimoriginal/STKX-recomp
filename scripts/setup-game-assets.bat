@@ -1,6 +1,7 @@
 @chcp 65001 >nul
 @echo off
 setlocal enabledelayedexpansion
+title Shutokou Battle X - Environment ^& Asset Setup Wizard / 环境与游戏资源检测向导
 
 cd /d "%~dp0.."
 set "CHECK_ONLY=0"
@@ -12,50 +13,51 @@ set "LINKS_FILE=%DOWNLOAD_DIR%\DOWNLOAD_LINKS.txt"
 :RUN_CHECK
 cls >nul 2>nul
 echo ==============================================================================
-echo   Shutokou Battle X [首都高赛车X] - 环境与游戏资源全量检测向导
-echo   当前工作目录: %CD%
+echo   Shutokou Battle X [首都高赛车X]
+echo   Environment ^& Asset Setup Wizard / 环境与游戏资源全量检测向导
+echo   Working Directory / 当前工作目录: %CD%
 echo ==============================================================================
 
 if not exist "game_root" (
     mkdir "game_root"
-    echo [OK] 已在项目根目录创建: %CD%\game_root\
+    echo [OK] Created directory / 已创建目录: %CD%\game_root\
 )
 
 if not exist "saves" (
     mkdir "saves"
-    echo [OK] 已在项目根目录创建: %CD%\saves\
+    echo [OK] Created directory / 已创建目录: %CD%\saves\
 )
 
 REM ------------------------------------------------------------------------------
-REM 1. 游戏资源检测
+REM 1. Game Assets Check
 REM ------------------------------------------------------------------------------
 echo.
-echo [1/3] 检测游戏资源 [game_root]...
+echo [1/3] Checking game assets [game_root]... / 检测游戏资源 [game_root]...
 set "ASSETS_OK=1"
 
 if exist "game_root\default.xex" (
     echo   [OK]      default.xex
 ) else (
-    echo   [MISSING] 缺少文件: %CD%\game_root\default.xex
+    echo   [MISSING] Missing file / 缺少文件: %CD%\game_root\default.xex
     set "ASSETS_OK=0"
 )
 
 if exist "game_root\DATA" (
     echo   [OK]      DATA\
-    if exist "game_root\DATA\TXR"     echo             - TXR     [车辆模型/赛道贴图/物理特性]
-    if exist "game_root\DATA\SHADERS" echo             - SHADERS [GPU 微码着色器]
-    if exist "game_root\DATA\AUDIO"   echo             - AUDIO   [引擎声浪与 BGM]
-    if exist "game_root\DATA\FONT"    echo             - FONT    [游戏字体库]
+    if exist "game_root\DATA\TXR"     echo             - TXR     [Models, Textures ^& Physics]
+    if exist "game_root\DATA\SHADERS" echo             - SHADERS [GPU Microcode Shaders]
+    if exist "game_root\DATA\AUDIO"   echo             - AUDIO   [Engine Audio ^& BGM]
+    if exist "game_root\DATA\FONT"    echo             - FONT    [Game Fonts]
 ) else (
-    echo   [MISSING] 缺少目录: %CD%\game_root\DATA\
+    echo   [MISSING] Missing directory / 缺少目录: %CD%\game_root\DATA\
     set "ASSETS_OK=0"
 )
 
 REM ------------------------------------------------------------------------------
-REM 2. 编译工具链检测
+REM 2. Build Toolchain Check
 REM ------------------------------------------------------------------------------
 echo.
-echo [2/3] 检测后续编译所需工具链...
+echo [2/3] Checking build toolchain... / 检测后续编译所需工具链...
 set "TOOLS_OK=1"
 set "MISS_GIT=0"
 set "MISS_CMAKE=0"
@@ -67,7 +69,7 @@ where git >nul 2>nul
 if %ERRORLEVEL% equ 0 (
     echo   [OK]      Git
 ) else (
-    echo   [MISSING] Git        ^(用于拉取源码依赖^)
+    echo   [MISSING] Git        ^(Required for fetching source dependencies / 用于拉取源码依赖^)
     set "MISS_GIT=1"
     set "TOOLS_OK=0"
 )
@@ -76,7 +78,7 @@ where cmake >nul 2>nul
 if %ERRORLEVEL% equ 0 (
     echo   [OK]      CMake
 ) else (
-    echo   [MISSING] CMake      ^(需 3.25+, 用于项目配置与构建^)
+    echo   [MISSING] CMake      ^(Requires 3.25+ / 需 3.25+, 用于项目配置与构建^)
     set "MISS_CMAKE=1"
     set "TOOLS_OK=0"
 )
@@ -85,7 +87,7 @@ where ninja >nul 2>nul
 if %ERRORLEVEL% equ 0 (
     echo   [OK]      Ninja
 ) else (
-    echo   [MISSING] Ninja      ^(CMakePresets 使用 Ninja Multi-Config^)
+    echo   [MISSING] Ninja      ^(Used by CMakePresets Ninja Multi-Config^)
     set "MISS_NINJA=1"
     set "TOOLS_OK=0"
 )
@@ -98,7 +100,7 @@ if %ERRORLEVEL% neq 0 set "HAS_CLANG=0"
 if !HAS_CLANG! equ 1 (
     echo   [OK]      LLVM/Clang ^(clang / clang++^)
 ) else (
-    echo   [MISSING] LLVM/Clang ^(CMakePresets 使用 clang / clang++^)
+    echo   [MISSING] LLVM/Clang ^(CMakePresets requires clang / clang++^)
     set "MISS_CLANG=1"
     set "TOOLS_OK=0"
 )
@@ -114,18 +116,18 @@ if !HAS_MSVC! equ 0 if exist "!VSWHERE!" (
     )
 )
 if !HAS_MSVC! equ 1 (
-    echo   [OK]      VS2022 / MSVC 构建工具与 Windows SDK
+    echo   [OK]      VS2022 / MSVC Build Tools ^& Windows SDK
 ) else (
-    echo   [MISSING] VS2022 / MSVC Build Tools [Clang 链接 Windows 目标必需]
+    echo   [MISSING] VS2022 / MSVC Build Tools [Required for linking Windows targets / Clang 链接必需]
     set "MISS_MSVC=1"
     set "TOOLS_OK=0"
 )
 
 REM ------------------------------------------------------------------------------
-REM 3. 第三方源码依赖检测 (thirdparty\)
+REM 3. Third-Party Source Dependencies Check (thirdparty\)
 REM ------------------------------------------------------------------------------
 echo.
-echo [3/3] 检测第三方源码依赖 [thirdparty\]...
+echo [3/3] Checking third-party libraries [thirdparty\]... / 检测第三方源码依赖 [thirdparty\]...
 set "LIBS_OK=1"
 set "MISS_LIB_COUNT=0"
 
@@ -151,72 +153,75 @@ call :CHECK_LIB "glslang"                 "thirdparty\glslang\SPIRV\SpvBuilder.h
 echo.
 echo ==============================================================================
 if !ASSETS_OK! equ 1 if !TOOLS_OK! equ 1 if !LIBS_OK! equ 1 (
-    echo [状态良好] 游戏资源、编译工具链与第三方依赖全部就绪！
-    echo 接下来请按顺序执行:
-    echo   1. scripts\run-codegen.bat   [执行 AOT 静态代码生成]
-    echo   2. scripts\build-windows.bat [编译 Windows 原生游戏程序]
-    echo   3. launch-game.bat           [启动游戏]
+    echo [ALL READY / 状态良好] Game assets, toolchain, and third-party libraries are all ready.
+    echo                        游戏资源、编译工具链与第三方依赖全部就绪！
+    echo.
+    echo Next steps / 接下来请按顺序执行:
+    echo   1. scripts\run-codegen.bat   [Run AOT static codegen / 执行 AOT 静态代码生成]
+    echo   2. scripts\build-windows.bat [Build Windows native executable / 编译 Windows 原生游戏程序]
     echo ==============================================================================
-    if "!CHECK_ONLY!"=="0" pause
-    exit /b 0
+    goto :SCRIPT_EXIT
 )
 
 if !ASSETS_OK! equ 0 (
-    echo [游戏资源未就绪] 请将正版提取的 Xbox 360 游戏文件放入:
+    echo [ASSETS NOT READY / 游戏资源未就绪]
+    echo Please place your extracted Xbox 360 game files into / 请将正版提取的 Xbox 360 游戏文件放入:
     echo   %CD%\game_root\default.xex
     echo   %CD%\game_root\DATA\
     echo.
 )
 
 if !TOOLS_OK! equ 1 if !LIBS_OK! equ 1 (
-    echo [组件状态] 编译工具链与第三方依赖已全部就绪，仅需补齐上方 game_root 资源即可。
+    echo [STATUS / 组件状态] Toolchain and third-party libraries are ready. Only game_root assets are needed.
+    echo                     编译工具链与第三方依赖已全部就绪，仅需补齐上方 game_root 资源即可。
     echo ==============================================================================
-    if "!CHECK_ONLY!"=="0" pause
-    exit /b 0
+    goto :SCRIPT_EXIT
 )
 
-echo [发现缺失组件] 请选择安装方式:
-echo   [1] 在当前工具下一键下载并安装缺失组件 (需要联网)
-echo   [2] 导出/显示所有缺失组件的下载链接，并指定手动下载存放目录 (适合弱网/离线)
-echo   [3] 从指定目录统一解压并安装已下载的压缩包 (%DOWNLOAD_DIR%)
-echo   [0] 暂不安装，退出检测
+echo [MISSING COMPONENTS / 发现缺失组件] Please select an installation method / 请选择安装方式:
+echo   [1] One-click online download ^& install (Requires Internet / 一键联网下载并安装缺失组件)
+echo   [2] Export download links for manual/offline download (导出缺失组件下载链接，适合弱网/离线)
+echo   [3] Extract ^& install downloaded .zip archives from %DOWNLOAD_DIR% (从指定目录统一解压安装压缩包)
+echo   [0] Exit without installing (暂不安装，退出检测)
 echo ==============================================================================
 
 if "!CHECK_ONLY!"=="1" exit /b 1
 
 set "USER_CHOICE="
-set /p "USER_CHOICE=请输入选项 [1/2/3/0]: "
+set /p "USER_CHOICE=Select option / 请输入选项 [1/2/3/0]: "
 
 if "!USER_CHOICE!"=="1" goto :ONE_CLICK_INSTALL
 if "!USER_CHOICE!"=="2" goto :SHOW_MANUAL_LINKS
 if "!USER_CHOICE!"=="3" goto :EXTRACT_ARCHIVE_DIR
-if "!USER_CHOICE!"=="0" exit /b 0
-echo 无效选项，请重试。
+if "!USER_CHOICE!"=="0" goto :SCRIPT_EXIT
+echo Invalid option, please try again. / 无效选项，请重试。
 goto :RUN_CHECK
 
 REM ==============================================================================
-REM 选项 1: 一键下载并安装缺失组件
+REM Option 1: One-click online download and install
 REM ==============================================================================
 :ONE_CLICK_INSTALL
 echo.
-echo [一键安装] 正在处理缺失组件...
+echo [One-Click Install / 一键安装] Processing missing components...
 
 if !TOOLS_OK! equ 0 (
     where winget >nul 2>nul
     if %ERRORLEVEL% equ 0 (
-        echo 检测到 winget，正在尝试自动安装缺失的编译工具...
+        echo Detected winget, installing missing build tools...
         if !MISS_GIT! equ 1   winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements
         if !MISS_CMAKE! equ 1 winget install --id Kitware.CMake -e --accept-source-agreements --accept-package-agreements
         if !MISS_NINJA! equ 1 winget install --id Ninja-build.Ninja -e --accept-source-agreements --accept-package-agreements
         if !MISS_CLANG! equ 1 winget install --id LLVM.LLVM -e --accept-source-agreements --accept-package-agreements
         if !MISS_MSVC! equ 1 (
-            echo 正在启动 Visual Studio 2022 Build Tools 安装器 ^(请选择 "使用 C++ 的桌面开发"^)...
+            echo Launching Visual Studio 2022 Build Tools installer ^(Please select "Desktop development with C++"^)...
+            echo 正在启动 Visual Studio 2022 Build Tools 安装器 ^(请勾选 "使用 C++ 的桌面开发"^)...
             winget install --id Microsoft.VisualStudio.2022.BuildTools -e --accept-source-agreements --accept-package-agreements
         )
-        REM 刷新当前会话 PATH
+        REM Refresh current session PATH
         for /f "usebackq delims=" %%P in (`powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')"`) do set "PATH=%%P"
     ) else (
-        echo [WARN] 当前系统未检测到 winget，无法自动安装系统工具链，请使用选项 [2] 获取安装包链接。
+        echo [WARN] winget not found. Please use Option [2] to get installer download links.
+        echo [警告] 当前系统未检测到 winget，请使用选项 [2] 获取安装包下载链接。
     )
 )
 
@@ -224,11 +229,11 @@ if !LIBS_OK! equ 0 (
     where git >nul 2>nul
     if %ERRORLEVEL% equ 0 (
         echo.
-        echo 正在通过 Git 拉取缺失的第三方源码依赖...
+        echo Fetching missing third-party source libraries via Git...
         call "%~dp0download-dependencies.bat" --no-pause
     ) else (
         echo.
-        echo [INFO] 未检测到 git，改用 PowerShell 直接下载压缩包并解压...
+        echo [INFO] Git not found; downloading .zip archives via PowerShell and extracting...
         if not exist "%DOWNLOAD_DIR%" mkdir "%DOWNLOAD_DIR%"
         call :PS_DOWNLOAD_MISSING_ZIPS
         call :PS_EXTRACT_ALL_ZIPS
@@ -236,24 +241,24 @@ if !LIBS_OK! equ 0 (
 )
 
 echo.
-echo [完成] 一键处理结束，正在重新检测...
-pause
+echo [DONE / 完成] One-click processing finished. Press Enter to re-check...
+set /p "_RECHECK_WAIT=Press Enter to continue / 请按 Enter 键重新检测..."
 goto :RUN_CHECK
 
 REM ==============================================================================
-REM 选项 2: 列出所有缺失组件下载链接 + 统一存放目录
+REM Option 2: Export missing component download links + target folder
 REM ==============================================================================
 :SHOW_MANUAL_LINKS
 if not exist "%DOWNLOAD_DIR%" mkdir "%DOWNLOAD_DIR%"
 
 > "%LINKS_FILE%" (
     echo ==============================================================================
-    echo Shutokou Battle X - 缺失组件手动下载清单
-    echo 生成时间: %DATE% %TIME%
+    echo Shutokou Battle X - Missing Components Manual Download List / 缺失组件手动下载清单
+    echo Generated / 生成时间: %DATE% %TIME%
     echo ==============================================================================
     echo.
     if !TOOLS_OK! equ 0 (
-        echo [一、编译工具链安装包 - 下载后直接双击安装即可]
+        echo [1. Build Toolchain Installers - Run installer after download / 编译工具链安装包 - 下载后直接双击安装]
         if !MISS_GIT! equ 1   echo   - Git for Windows: https://git-scm.com/download/win
         if !MISS_CMAKE! equ 1 echo   - CMake ^(Windows x64^): https://cmake.org/download/
         if !MISS_NINJA! equ 1 echo   - Ninja ^(Windows zip^): https://github.com/ninja-build/ninja/releases/latest
@@ -262,8 +267,9 @@ if not exist "%DOWNLOAD_DIR%" mkdir "%DOWNLOAD_DIR%"
         echo.
     )
     if !LIBS_OK! equ 0 (
-        echo [二、第三方源码依赖包 - 请全部下载为 .zip 压缩包并直接放入以下目录^(无需手动解压^):]
-        echo 存放目录: %DOWNLOAD_DIR%
+        echo [2. Third-Party Source Archives - Place .zip files directly in folder below ^(DO NOT extract manually^)]
+        echo [二、第三方源码依赖包 - 请下载为 .zip 压缩包并直接放入以下目录（保持原文件名，无需手动解压）:]
+        echo Target Directory / 存放目录: %DOWNLOAD_DIR%
         echo.
         if not exist "thirdparty\cli11\include\CLI\CLI.hpp"          echo   - cli11        : https://github.com/CLIUtils/CLI11/archive/HEAD.zip
         if not exist "thirdparty\tomlplusplus\include\toml++\toml.hpp" echo   - tomlplusplus : https://github.com/marzer/tomlplusplus/archive/HEAD.zip
@@ -289,40 +295,49 @@ if not exist "%DOWNLOAD_DIR%" mkdir "%DOWNLOAD_DIR%"
 echo.
 type "%LINKS_FILE%"
 echo.
-echo [提示] 以上清单已同步保存至:
+echo [INFO / 提示] The download list above has been saved to / 以上清单已同步保存至:
 echo   %LINKS_FILE%
 echo.
+echo Please place all downloaded .zip archives ^(keep original filenames, DO NOT extract manually^) into:
 echo 请将下载好的所有 .zip 压缩包（保持原文件名，无需手动解压）放入:
 echo   %DOWNLOAD_DIR%\
 echo.
 set "NEXT_ACTION="
-set /p "NEXT_ACTION=放好后输入 [Y] 立即统一解压安装，或输入 [M] 返回主菜单: "
+set /p "NEXT_ACTION=Enter [Y] to extract & install now, or [M] to return to menu / 放好后输入 [Y] 立即统一解压安装，或输入 [M] 返回主菜单: "
 if /i "!NEXT_ACTION!"=="Y" goto :EXTRACT_ARCHIVE_DIR
 goto :RUN_CHECK
 
 REM ==============================================================================
-REM 选项 3: 从 downloads\ 统一解压安装所有依赖档案
+REM Option 3: Extract & install all archives from downloads\
 REM ==============================================================================
 :EXTRACT_ARCHIVE_DIR
 echo.
 if not exist "%DOWNLOAD_DIR%" (
     mkdir "%DOWNLOAD_DIR%"
-    echo [提示] 已创建存放目录: %DOWNLOAD_DIR%
+    echo [INFO / 提示] Created directory / 已创建存放目录: %DOWNLOAD_DIR%
+    echo Please place the downloaded .zip archives into this directory first.
     echo 请先将下载好的 .zip 压缩包放入该目录，然后再执行本步骤。
-    pause
+    set /p "_WAIT_DIR=Press Enter to return to menu / 请按 Enter 键返回主菜单..."
     goto :RUN_CHECK
 )
 
-echo 正在扫描并统一解压 %DOWNLOAD_DIR% 中的依赖档案...
+echo Scanning and extracting archives from %DOWNLOAD_DIR%...
 call :PS_EXTRACT_ALL_ZIPS
 
 echo.
-echo [完成] 统一解压安装结束，正在重新检测...
-pause
+echo [DONE / 完成] Archive extraction finished. / 统一解压安装结束。
+set /p "_WAIT_EXT=Press Enter to re-check / 请按 Enter 键重新检测..."
 goto :RUN_CHECK
 
+:SCRIPT_EXIT
+if "!CHECK_ONLY!"=="0" (
+    echo.
+    set /p "_EXIT_WAIT=Press Enter to close this window / 请按 Enter 键关闭窗口..."
+)
+exit /b 0
+
 REM ==============================================================================
-REM 辅助子程序
+REM Helper Subroutines
 REM ==============================================================================
 :CHECK_LIB
 set "LIB_NAME=%~1"
@@ -363,8 +378,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "foreach ($it in $items) {" ^
   "  if (Test-Path $it.sentinel) { continue }" ^
   "  $out = Join-Path $dl $it.file;" ^
-  "  Write-Host ('[下载] ' + $it.name + ' -> ' + $out);" ^
-  "  try { Invoke-WebRequest -Uri $it.url -OutFile $out -UseBasicParsing } catch { Write-Host ('[ERROR] 下载失败: ' + $it.name + ' - ' + $_.Exception.Message) }" ^
+  "  Write-Host ('[Download] ' + $it.name + ' -> ' + $out);" ^
+  "  try { Invoke-WebRequest -Uri $it.url -OutFile $out -UseBasicParsing } catch { Write-Host ('[ERROR] Download failed: ' + $it.name + ' - ' + $_.Exception.Message) }" ^
   "}"
 exit /b 0
 
@@ -385,7 +400,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "  @{ name='inja';         sentinel='thirdparty\inja\include\inja\inja.hpp';         target='thirdparty\inja';         patterns=@('*inja*.zip') }," ^
   "  @{ name='libmspack';    sentinel='thirdparty\libmspack\cabextract\mspack\lzxd.c'; target='thirdparty\libmspack';    patterns=@('*libmspack*.zip') }," ^
   "  @{ name='o1heap';       sentinel='thirdparty\o1heap\o1heap\o1heap.c';             target='thirdparty\o1heap';       patterns=@('*o1heap*.zip') }," ^
-  "  @{ name='FFmpeg';       sentinel='thirdparty\FFmpeg\libavutil\adler32.c';         target='thirdparty\FFmpeg';       patterns=@('*ffmpeg*.zip') }" ^
+  "  @{ name='FFmpeg';       sentinel='thirdparty\FFmpeg\libavutil\adler32.c';         target='thirdparty\FFmpeg';       patterns=@('*ffmpeg*.zip') }," ^
+  "  @{ name='vulkan-headers';          sentinel='thirdparty\vulkan-headers\include\vulkan\vulkan.h';         target='thirdparty\vulkan-headers';          patterns=@('*vulkan-headers*.zip','*Vulkan-Headers*.zip') }," ^
+  "  @{ name='vulkan-memory-allocator'; sentinel='thirdparty\vulkan-memory-allocator\include\vk_mem_alloc.h'; target='thirdparty\vulkan-memory-allocator'; patterns=@('*vulkan-memory-allocator*.zip','*VulkanMemoryAllocator*.zip') }," ^
+  "  @{ name='spirv-headers';           sentinel='thirdparty\spirv-headers\include\spirv\unified1\spirv.h';   target='thirdparty\spirv-headers';           patterns=@('*spirv-headers*.zip','*SPIRV-Headers*.zip') }," ^
+  "  @{ name='spirv-tools';             sentinel='thirdparty\spirv-tools\include\spirv-tools\libspirv.h';     target='thirdparty\spirv-tools';             patterns=@('*spirv-tools*.zip','*SPIRV-Tools*.zip') }," ^
+  "  @{ name='glslang';                 sentinel='thirdparty\glslang\SPIRV\SpvBuilder.h';                     target='thirdparty\glslang';                 patterns=@('*glslang*.zip') }" ^
   ");" ^
   "$zips = Get-ChildItem -Path $dl -Filter '*.zip' -File -ErrorAction SilentlyContinue;" ^
   "foreach ($it in $items) {" ^
@@ -395,8 +415,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "    $match = $zips | Where-Object { $_.Name -like $pat } | Select-Object -First 1;" ^
   "    if ($match) { break }" ^
   "  }" ^
-  "  if (-not $match) { Write-Host ('  [SKIP] 未找到 ' + $it.name + ' 对应的压缩包'); continue }" ^
-  "  Write-Host ('  [解压] ' + $match.Name + ' -> ' + $it.target);" ^
+  "  if (-not $match) { Write-Host ('  [SKIP] Archive not found for ' + $it.name); continue }" ^
+  "  Write-Host ('  [Extract] ' + $match.Name + ' -> ' + $it.target);" ^
   "  $tmp = Join-Path $dl ('_tmp_' + $it.name);" ^
   "  if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }" ^
   "  Expand-Archive -Path $match.FullName -DestinationPath $tmp -Force;" ^
@@ -410,6 +430,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "    Get-ChildItem -Path $tmp | Move-Item -Destination $it.target;" ^
   "  }" ^
   "  if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }" ^
-  "  if (Test-Path $it.sentinel) { Write-Host ('  [OK]   ' + $it.name + ' 安装成功') } else { Write-Host ('  [WARN] ' + $it.name + ' 解压后未检测到预期文件: ' + $it.sentinel) }" ^
+  "  if (Test-Path $it.sentinel) { Write-Host ('  [OK]      ' + $it.name + ' installed') } else { Write-Host ('  [WARN]    ' + $it.name + ' extracted, but missing sentinel: ' + $it.sentinel) }" ^
   "}"
 exit /b 0

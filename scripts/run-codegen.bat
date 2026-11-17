@@ -1,26 +1,30 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+title Shutokou Battle X - ReXGlue AOT Codegen / 静态重编译代码生成工具
 
 cd /d "%~dp0.."
 
 if not exist "logs" mkdir "logs"
 set "LOG_FILE=%CD%\logs\codegen_latest.log"
 
-:: 清空或初始化最新日志文件
+:: Initialize latest log file
 type nul > "%LOG_FILE%"
 
 echo ==============================================================================
-echo   Shutokou Battle X [Tokyo Xtreme Racer] - ReXGlue Ahead-Of-Time Codegen
-echo   Root: %CD%
-echo   Log:  %LOG_FILE%
+echo   Shutokou Battle X [首都高赛车X] - ReXGlue Ahead-Of-Time Codegen
+echo   Static Recompilation Code Generator / 静态重编译代码生成工具
+echo   Root / 根目录: %CD%
+echo   Log  / 日志  : %LOG_FILE%
 echo ==============================================================================
 echo.
 
 echo [1/3] Checking game files...
 if not exist "game_root\default.xex" (
     echo [ERROR] Game executable not found: %CD%\game_root\default.xex
-    echo Please make sure default.xex and DATA are in %CD%\game_root\
+    echo [错误]  未找到游戏可执行文件: %CD%\game_root\default.xex
+    echo Please make sure default.xex and DATA are placed in %CD%\game_root\
+    echo 请确保已将正版解包的 default.xex 与 DATA 目录放入 %CD%\game_root\
     goto :script_exit
 )
 echo   [OK] Found game executable: game_root\default.xex
@@ -28,7 +32,7 @@ echo   [OK] Found game executable: game_root\default.xex
 echo.
 echo [2/3] Checking dependencies and rexglue tool...
 if exist "scripts\download-dependencies.bat" (
-    call "scripts\download-dependencies.bat"
+    call "scripts\download-dependencies.bat" --no-pause
 )
 
 set "REXGLUE_BIN="
@@ -47,6 +51,7 @@ if exist "out\build\win-amd64\build.ninja" (
     cmake --build out/build/win-amd64 --config Release --target rexglue >> "%LOG_FILE%" 2>&1
     if !ERRORLEVEL! neq 0 (
         echo [ERROR] Failed to update rexglue.exe! Check log: %LOG_FILE%
+        echo [错误]  更新构建 rexglue.exe 失败！请查看日志: %LOG_FILE%
         powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
         goto :script_exit
     )
@@ -63,16 +68,16 @@ if exist "out\build\win-amd64\build.ninja" (
 
     cmake --preset win-amd64 > "%LOG_FILE%" 2>&1
     if !ERRORLEVEL! neq 0 (
-        echo [ERROR] CMake configuration failed!
-        echo Check log: %LOG_FILE%
+        echo [ERROR] CMake configuration failed. Check log: %LOG_FILE%
+        echo [错误]  CMake 配置失败！请检查日志: %LOG_FILE%
         goto :script_exit
     )
 
     echo Building rexglue compiler...
     cmake --build out/build/win-amd64 --config Release --target rexglue >> "%LOG_FILE%" 2>&1
     if !ERRORLEVEL! neq 0 (
-        echo [ERROR] Failed to build rexglue.exe!
-        echo Check log: %LOG_FILE%
+        echo [ERROR] Failed to build rexglue.exe! Check log: %LOG_FILE%
+        echo [错误]  编译 rexglue.exe 失败！请检查日志: %LOG_FILE%
         goto :script_exit
     )
 
@@ -89,7 +94,7 @@ if exist "out\build\win-amd64\build.ninja" (
     ) else if exist "build\rexglue.exe" (
         set "REXGLUE_BIN=build\rexglue.exe"
     ) else (
-        echo [ERROR] rexglue.exe not found after build.
+        echo [ERROR] rexglue.exe not found after build. / 编译后未找到 rexglue.exe。
         goto :script_exit
     )
 )
@@ -101,18 +106,18 @@ echo [3/3] Generating Ahead-Of-Time C++ code for Shutokou Battle X...
 echo Command: "!REXGLUE_BIN!" codegen manifest.toml --ignore-stamp
 "!REXGLUE_BIN!" codegen manifest.toml --ignore-stamp
 if !ERRORLEVEL! neq 0 (
-    echo [ERROR] Codegen failed!
+    echo [ERROR] Codegen failed. / AOT 代码生成失败！
     goto :script_exit
 )
 
 echo.
 echo ==============================================================================
-echo [SUCCESS] AOT Codegen completed successfully!
-echo Generated C++ source files in: %CD%\src\generated\entrypoint\
-echo Log saved to: %LOG_FILE%
-echo Next step: run scripts\build-windows.bat
+echo [SUCCESS] AOT Codegen completed successfully. / AOT 静态代码生成成功！
+echo Generated C++ source files in / 生成源码目录: %CD%\src\generated\entrypoint\
+echo Log saved to / 日志文件: %LOG_FILE%
+echo Next step / 下一步请运行: scripts\build-windows.bat
 echo ==============================================================================
 
 :script_exit
 echo.
-pause
+set /p "_EXIT_WAIT=Press Enter to close this window / 请按 Enter 键关闭窗口..."
