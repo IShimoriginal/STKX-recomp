@@ -9,6 +9,11 @@ if exist "%CD%\tools\binutils" set "PATH=%CD%\tools\binutils;!PATH!"
 if exist "C:\Program Files\Git\cmd" set "PATH=!PATH!;C:\Program Files\Git\cmd"
 if exist "C:\Program Files\CMake\bin" set "PATH=!PATH!;C:\Program Files\CMake\bin"
 if exist "C:\Program Files\LLVM\bin" set "PATH=!PATH!;C:\Program Files\LLVM\bin"
+if not defined VSCMD_VER if exist "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" (
+    call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" >nul 2>nul
+)
+
+set "SCRIPT_EXIT_CODE=0"
 
 if not exist "logs" mkdir "logs"
 set "LOG_FILE=%CD%\logs\build_latest.log"
@@ -127,6 +132,7 @@ if !ERRORLEVEL! neq 0 (
 if !ERRORLEVEL! neq 0 (
     echo [ERROR] Build failed. Check log: %LOG_FILE%
     call :PRINT_CN "[\u9519\u8BEF] \u7F16\u8BD1\u5931\u8D25\uFF01\u8BF7\u68C0\u67E5\u65E5\u5FD7\u6587\u4EF6\uFF01"
+    set "SCRIPT_EXIT_CODE=1"
     goto :script_exit
 )
 
@@ -184,10 +190,12 @@ echo Log file: %LOG_FILE%
 echo ==============================================================================
 
 :script_exit
-echo.
-call :PRINT_CN "\u8BF7\u6309 Enter \u952E\u5173\u95ED\u7A97\u53E3..."
-set /p "_EXIT_WAIT=Press Enter to close this window..."
-exit /b 0
+if /i not "%~1"=="--no-pause" (
+    echo.
+    call :PRINT_CN "\u8BF7\u6309 Enter \u952E\u5173\u95ED\u7A97\u53E3..."
+    set /p "_EXIT_WAIT=Press Enter to close this window..."
+)
+exit /b %SCRIPT_EXIT_CODE%
 
 :PRINT_CN
 powershell -NoProfile -Command "Write-Host ([regex]::Unescape('%~1'))"

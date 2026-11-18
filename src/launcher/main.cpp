@@ -28,10 +28,10 @@
 namespace {
 
 constexpr wchar_t kWindowClassName[] = L"SBXLauncherWindowClass";
-constexpr wchar_t kWindowTitle[] = L"首都高赛车X - 启动配置 (Shutokou Battle X Launcher)";
 constexpr wchar_t kIniSection[] = L"Launcher";
 
 enum ControlId : int {
+  kIdLangCombo = 1000,
   kIdApiCombo = 1001,
   kIdInternalResCombo = 1002,
   kIdWindowResCombo = 1003,
@@ -44,7 +44,8 @@ enum ControlId : int {
 };
 
 struct OptionItem {
-  const wchar_t* label;
+  const wchar_t* label_zh;
+  const wchar_t* label_en;
   const wchar_t* arg_value;
 };
 
@@ -54,15 +55,20 @@ struct ResolutionItem {
   int height;
 };
 
+constexpr const wchar_t* kLanguageOptions[] = {
+    L"简体中文",
+    L"English",
+};
+
 constexpr OptionItem kApiOptions[] = {
-    {L"Direct3D 12", L"d3d12"},
-    {L"Vulkan", L"vulkan"},
+    {L"Direct3D 12", L"Direct3D 12", L"d3d12"},
+    {L"Vulkan", L"Vulkan", L"vulkan"},
 };
 
 constexpr OptionItem kInternalResOptions[] = {
-    {L"1x (1280 x 720)", L"1"},
-    {L"2x (2560 x 1440)", L"2"},
-    {L"3x (3840 x 2160 / 4K)", L"3"},
+    {L"1x (1280 x 720)", L"1x (1280 x 720)", L"1"},
+    {L"2x (2560 x 1440)", L"2x (2560 x 1440)", L"2"},
+    {L"3x (3840 x 2160 / 4K)", L"3x (3840 x 2160 / 4K)", L"3"},
 };
 
 constexpr ResolutionItem kWindowResOptions[] = {
@@ -74,24 +80,33 @@ constexpr ResolutionItem kWindowResOptions[] = {
 };
 
 constexpr OptionItem kUpscaleOptions[] = {
-    {L"Bilinear (双线性过滤)", L"bilinear"},
-    {L"FSR 1 (AMD FidelityFX Super Resolution 1.0)", L"fsr"},
+    {L"Bilinear (双线性过滤)", L"Bilinear", L"bilinear"},
+    {L"FSR 1 (AMD FidelityFX Super Resolution 1.0)", L"FSR 1 (AMD FidelityFX Super Resolution 1.0)",
+     L"fsr"},
 };
 
 constexpr OptionItem kFpsOptions[] = {
-    {L"30 FPS", L"30"},
-    {L"40 FPS", L"40"},
-    {L"60 FPS", L"60"},
-    {L"120 FPS", L"120"},
-    {L"无限制 (Unlimited)", L"0"},
+    {L"30 FPS", L"30 FPS", L"30"},
+    {L"40 FPS", L"40 FPS", L"40"},
+    {L"60 FPS", L"60 FPS", L"60"},
+    {L"120 FPS", L"120 FPS", L"120"},
+    {L"无限制 (Unlimited)", L"Unlimited", L"0"},
 };
 
 struct LauncherState {
   HWND hwnd = nullptr;
+  HWND title_label = nullptr;
+  HWND lang_label = nullptr;
+  HWND lang_combo = nullptr;
+  HWND api_label = nullptr;
   HWND api_combo = nullptr;
+  HWND internal_res_label = nullptr;
   HWND internal_res_combo = nullptr;
+  HWND window_res_label = nullptr;
   HWND window_res_combo = nullptr;
+  HWND upscale_label = nullptr;
   HWND upscale_combo = nullptr;
+  HWND fps_label = nullptr;
   HWND fps_combo = nullptr;
   HWND vsync_check = nullptr;
   HWND windowed_check = nullptr;
@@ -100,6 +115,7 @@ struct LauncherState {
   HFONT ui_font = nullptr;
   HFONT title_font = nullptr;
   UINT dpi = 96;
+  int language = 0;  // 0 = Chinese, 1 = English
 };
 
 LauncherState g_state;
@@ -135,8 +151,46 @@ int ClampIndex(int value, int count) {
   return value;
 }
 
+template <size_t N>
+void RefreshOptionCombo(HWND combo, const OptionItem (&options)[N], int lang) {
+  int sel = ClampIndex(static_cast<int>(SendMessageW(combo, CB_GETCURSEL, 0, 0)),
+                       static_cast<int>(N));
+  SendMessageW(combo, CB_RESETCONTENT, 0, 0);
+  for (size_t i = 0; i < N; ++i) {
+    const wchar_t* text = (lang == 1) ? options[i].label_en : options[i].label_zh;
+    SendMessageW(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(text));
+  }
+  SendMessageW(combo, CB_SETCURSEL, sel, 0);
+}
+
+void ApplyLanguage(int lang) {
+  g_state.language = ClampIndex(lang, static_cast<int>(std::size(kLanguageOptions)));
+  const bool en = (g_state.language == 1);
+
+  SetWindowTextW(g_state.hwnd,
+                 en ? L"Shutokou Battle X - Launcher"
+                    : L"首都高赛车X - 启动配置 (Shutokou Battle X Launcher)");
+  SetWindowTextW(g_state.title_label,
+                 en ? L"Shutokou Battle X" : L"首都高赛车X (Shutokou Battle X)");
+  SetWindowTextW(g_state.lang_label, L"语言 / Language:");
+  SetWindowTextW(g_state.api_label, en ? L"Graphics API:" : L"图形 API:");
+  SetWindowTextW(g_state.internal_res_label, en ? L"Internal Res:" : L"内部分辨率:");
+  SetWindowTextW(g_state.window_res_label, en ? L"Window Size:" : L"窗口分辨率:");
+  SetWindowTextW(g_state.upscale_label, en ? L"Upscaling:" : L"上采样方式:");
+  SetWindowTextW(g_state.fps_label, en ? L"Target FPS:" : L"目标帧率:");
+  SetWindowTextW(g_state.vsync_check, en ? L"Enable VSync" : L"启用垂直同步 (VSync)");
+  SetWindowTextW(g_state.windowed_check, en ? L"Windowed Mode" : L"窗口化启动 (Windowed)");
+  SetWindowTextW(g_state.launch_btn, en ? L"Launch Game" : L"启动游戏");
+  SetWindowTextW(g_state.exit_btn, en ? L"Exit" : L"退出");
+
+  RefreshOptionCombo(g_state.upscale_combo, kUpscaleOptions, g_state.language);
+  RefreshOptionCombo(g_state.fps_combo, kFpsOptions, g_state.language);
+}
+
 void LoadSavedSettings() {
   std::wstring ini = GetIniPath();
+  int lang_idx = ClampIndex(GetPrivateProfileIntW(kIniSection, L"language", 0, ini.c_str()),
+                            static_cast<int>(std::size(kLanguageOptions)));
   int api_idx = ClampIndex(GetPrivateProfileIntW(kIniSection, L"api", 0, ini.c_str()),
                            static_cast<int>(std::size(kApiOptions)));
   int int_res_idx = ClampIndex(GetPrivateProfileIntW(kIniSection, L"internal_res", 0, ini.c_str()),
@@ -150,6 +204,7 @@ void LoadSavedSettings() {
   int vsync = GetPrivateProfileIntW(kIniSection, L"vsync", 0, ini.c_str()) ? 1 : 0;
   int windowed = GetPrivateProfileIntW(kIniSection, L"windowed", 1, ini.c_str()) ? 1 : 0;
 
+  SendMessageW(g_state.lang_combo, CB_SETCURSEL, lang_idx, 0);
   SendMessageW(g_state.api_combo, CB_SETCURSEL, api_idx, 0);
   SendMessageW(g_state.internal_res_combo, CB_SETCURSEL, int_res_idx, 0);
   SendMessageW(g_state.window_res_combo, CB_SETCURSEL, win_res_idx, 0);
@@ -157,16 +212,26 @@ void LoadSavedSettings() {
   SendMessageW(g_state.fps_combo, CB_SETCURSEL, fps_idx, 0);
   SendMessageW(g_state.vsync_check, BM_SETCHECK, vsync ? BST_CHECKED : BST_UNCHECKED, 0);
   SendMessageW(g_state.windowed_check, BM_SETCHECK, windowed ? BST_CHECKED : BST_UNCHECKED, 0);
+
+  ApplyLanguage(lang_idx);
 }
 
-void SaveSettings(int api_idx, int int_res_idx, int win_res_idx, int upscale_idx, int fps_idx,
-                  bool vsync, bool windowed) {
+void SaveLanguageSetting(int lang_idx) {
+  std::wstring ini = GetIniPath();
+  wchar_t buf[32];
+  swprintf_s(buf, L"%d", lang_idx);
+  WritePrivateProfileStringW(kIniSection, L"language", buf, ini.c_str());
+}
+
+void SaveSettings(int lang_idx, int api_idx, int int_res_idx, int win_res_idx, int upscale_idx,
+                  int fps_idx, bool vsync, bool windowed) {
   std::wstring ini = GetIniPath();
   auto write_int = [&ini](const wchar_t* key, int val) {
     wchar_t buf[32];
     swprintf_s(buf, L"%d", val);
     WritePrivateProfileStringW(kIniSection, key, buf, ini.c_str());
   };
+  write_int(L"language", lang_idx);
   write_int(L"api", api_idx);
   write_int(L"internal_res", int_res_idx);
   write_int(L"window_res", win_res_idx);
@@ -195,6 +260,8 @@ std::wstring ResolveTargetExe(std::wstring& out_work_dir) {
 }
 
 void LaunchGame() {
+  int lang_idx = ClampIndex(static_cast<int>(SendMessageW(g_state.lang_combo, CB_GETCURSEL, 0, 0)),
+                            static_cast<int>(std::size(kLanguageOptions)));
   int api_idx = ClampIndex(static_cast<int>(SendMessageW(g_state.api_combo, CB_GETCURSEL, 0, 0)),
                            static_cast<int>(std::size(kApiOptions)));
   int int_res_idx = ClampIndex(
@@ -212,15 +279,19 @@ void LaunchGame() {
   bool vsync = SendMessageW(g_state.vsync_check, BM_GETCHECK, 0, 0) == BST_CHECKED;
   bool windowed = SendMessageW(g_state.windowed_check, BM_GETCHECK, 0, 0) == BST_CHECKED;
 
-  SaveSettings(api_idx, int_res_idx, win_res_idx, upscale_idx, fps_idx, vsync, windowed);
+  SaveSettings(lang_idx, api_idx, int_res_idx, win_res_idx, upscale_idx, fps_idx, vsync, windowed);
 
+  const bool en = (lang_idx == 1);
   std::wstring work_dir;
   std::wstring exe_path = ResolveTargetExe(work_dir);
   if (!FileExists(exe_path)) {
     std::wstring msg =
-        L"未找到游戏主程序 shutokou_battle_x.exe！\n\n预期路径:\n" + exe_path +
-        L"\n\n请确保 Launcher.exe 与 shutokou_battle_x.exe 位于同一目录。";
-    MessageBoxW(g_state.hwnd, msg.c_str(), L"启动失败", MB_ICONERROR | MB_OK);
+        en ? (L"shutokou_battle_x.exe not found!\n\nExpected path:\n" + exe_path +
+              L"\n\nPlease make sure Launcher.exe and shutokou_battle_x.exe are in the same folder.")
+           : (L"未找到游戏主程序 shutokou_battle_x.exe！\n\n预期路径:\n" + exe_path +
+              L"\n\n请确保 Launcher.exe 与 shutokou_battle_x.exe 位于同一目录。");
+    MessageBoxW(g_state.hwnd, msg.c_str(), en ? L"Launch Failed" : L"启动失败",
+                MB_ICONERROR | MB_OK);
     return;
   }
 
@@ -249,8 +320,11 @@ void LaunchGame() {
                       work_dir.c_str(), &si, &pi)) {
     DWORD err = GetLastError();
     wchar_t err_msg[256] = {};
-    swprintf_s(err_msg, L"无法启动 shutokou_battle_x.exe (错误码: %lu)", err);
-    MessageBoxW(g_state.hwnd, err_msg, L"启动失败", MB_ICONERROR | MB_OK);
+    swprintf_s(err_msg,
+               en ? L"Failed to launch shutokou_battle_x.exe (Error code: %lu)"
+                  : L"无法启动 shutokou_battle_x.exe (错误码: %lu)",
+               err);
+    MessageBoxW(g_state.hwnd, err_msg, en ? L"Launch Failed" : L"启动失败", MB_ICONERROR | MB_OK);
     return;
   }
 
@@ -287,16 +361,17 @@ void CreateUiControls(HWND hwnd) {
   int row_step = ScaleDpi(38);
   int y = ScaleDpi(18);
 
-  HWND title = CreateWindowExW(0, L"STATIC", L"首都高赛车X (Shutokou Battle X)",
-                               WS_CHILD | WS_VISIBLE, margin_x, y, ScaleDpi(430), ScaleDpi(28),
-                               hwnd, nullptr, nullptr, nullptr);
-  set_font(title, g_state.title_font);
+  g_state.title_label = CreateWindowExW(0, L"STATIC", L"首都高赛车X (Shutokou Battle X)",
+                                        WS_CHILD | WS_VISIBLE, margin_x, y, ScaleDpi(430),
+                                        ScaleDpi(28), hwnd, nullptr, nullptr, nullptr);
+  set_font(g_state.title_label, g_state.title_font);
   y += ScaleDpi(36);
 
-  auto add_combo_row = [&](const wchar_t* label_text, int id, auto& options, size_t count) -> HWND {
-    HWND lbl = CreateWindowExW(0, L"STATIC", label_text, WS_CHILD | WS_VISIBLE | SS_CENTERIMAGE,
-                               margin_x, y, label_w, row_h, hwnd, nullptr, nullptr, nullptr);
-    set_font(lbl, g_state.ui_font);
+  auto add_combo_row = [&](const wchar_t* label_text, int id, HWND& out_label,
+                           auto& options, size_t count) -> HWND {
+    out_label = CreateWindowExW(0, L"STATIC", label_text, WS_CHILD | WS_VISIBLE | SS_CENTERIMAGE,
+                                margin_x, y, label_w, row_h, hwnd, nullptr, nullptr, nullptr);
+    set_font(out_label, g_state.ui_font);
 
     HWND combo = CreateWindowExW(
         0, L"COMBOBOX", L"",
@@ -305,21 +380,54 @@ void CreateUiControls(HWND hwnd) {
     set_font(combo, g_state.ui_font);
 
     for (size_t i = 0; i < count; ++i) {
-      SendMessageW(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(options[i].label));
+      SendMessageW(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(options[i].label_zh));
     }
     y += row_step;
     return combo;
   };
 
-  g_state.api_combo = add_combo_row(L"图形 API:", kIdApiCombo, kApiOptions, std::size(kApiOptions));
-  g_state.internal_res_combo = add_combo_row(L"内部分辨率:", kIdInternalResCombo, kInternalResOptions,
-                                             std::size(kInternalResOptions));
-  g_state.window_res_combo = add_combo_row(L"窗口分辨率:", kIdWindowResCombo, kWindowResOptions,
-                                           std::size(kWindowResOptions));
-  g_state.upscale_combo =
-      add_combo_row(L"上采样方式:", kIdUpscaleCombo, kUpscaleOptions, std::size(kUpscaleOptions));
-  g_state.fps_combo =
-      add_combo_row(L"目标帧率:", kIdFpsCombo, kFpsOptions, std::size(kFpsOptions));
+  // Language selector row at the top
+  g_state.lang_label = CreateWindowExW(0, L"STATIC", L"语言 / Language:",
+                                       WS_CHILD | WS_VISIBLE | SS_CENTERIMAGE, margin_x, y,
+                                       label_w, row_h, hwnd, nullptr, nullptr, nullptr);
+  set_font(g_state.lang_label, g_state.ui_font);
+  g_state.lang_combo = CreateWindowExW(
+      0, L"COMBOBOX", L"",
+      WS_CHILD | WS_VISIBLE | WS_TABSTOP | CBS_DROPDOWNLIST | WS_VSCROLL, combo_x, y, combo_w,
+      ScaleDpi(200), hwnd, reinterpret_cast<HMENU>(static_cast<INT_PTR>(kIdLangCombo)), nullptr,
+      nullptr);
+  set_font(g_state.lang_combo, g_state.ui_font);
+  for (const wchar_t* lang_name : kLanguageOptions) {
+    SendMessageW(g_state.lang_combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(lang_name));
+  }
+  y += row_step;
+
+  g_state.api_combo = add_combo_row(L"图形 API:", kIdApiCombo, g_state.api_label, kApiOptions,
+                                    std::size(kApiOptions));
+  g_state.internal_res_combo =
+      add_combo_row(L"内部分辨率:", kIdInternalResCombo, g_state.internal_res_label,
+                    kInternalResOptions, std::size(kInternalResOptions));
+
+  // Window resolution uses ResolutionItem
+  g_state.window_res_label = CreateWindowExW(0, L"STATIC", L"窗口分辨率:",
+                                             WS_CHILD | WS_VISIBLE | SS_CENTERIMAGE, margin_x, y,
+                                             label_w, row_h, hwnd, nullptr, nullptr, nullptr);
+  set_font(g_state.window_res_label, g_state.ui_font);
+  g_state.window_res_combo = CreateWindowExW(
+      0, L"COMBOBOX", L"",
+      WS_CHILD | WS_VISIBLE | WS_TABSTOP | CBS_DROPDOWNLIST | WS_VSCROLL, combo_x, y, combo_w,
+      ScaleDpi(200), hwnd, reinterpret_cast<HMENU>(static_cast<INT_PTR>(kIdWindowResCombo)),
+      nullptr, nullptr);
+  set_font(g_state.window_res_combo, g_state.ui_font);
+  for (const auto& res : kWindowResOptions) {
+    SendMessageW(g_state.window_res_combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(res.label));
+  }
+  y += row_step;
+
+  g_state.upscale_combo = add_combo_row(L"上采样方式:", kIdUpscaleCombo, g_state.upscale_label,
+                                        kUpscaleOptions, std::size(kUpscaleOptions));
+  g_state.fps_combo = add_combo_row(L"目标帧率:", kIdFpsCombo, g_state.fps_label, kFpsOptions,
+                                    std::size(kFpsOptions));
 
   y += ScaleDpi(4);
   g_state.vsync_check =
@@ -368,6 +476,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
     case WM_COMMAND: {
       int id = LOWORD(wparam);
       int code = HIWORD(wparam);
+      if (id == kIdLangCombo && code == CBN_SELCHANGE) {
+        int lang_idx = ClampIndex(
+            static_cast<int>(SendMessageW(g_state.lang_combo, CB_GETCURSEL, 0, 0)),
+            static_cast<int>(std::size(kLanguageOptions)));
+        ApplyLanguage(lang_idx);
+        SaveLanguageSetting(lang_idx);
+        return 0;
+      }
       if (code == BN_CLICKED) {
         if (id == kIdLaunchBtn) {
           LaunchGame();
@@ -431,7 +547,7 @@ int WINAPI wWinMain(HINSTANCE hinstance, HINSTANCE, PWSTR, int ncmd_show) {
   }
 
   DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
-  RECT rect = {0, 0, ScaleDpi(480), ScaleDpi(382)};
+  RECT rect = {0, 0, ScaleDpi(480), ScaleDpi(420)};
   AdjustWindowRectEx(&rect, style, FALSE, 0);
   int win_w = rect.right - rect.left;
   int win_h = rect.bottom - rect.top;
@@ -441,8 +557,9 @@ int WINAPI wWinMain(HINSTANCE hinstance, HINSTANCE, PWSTR, int ncmd_show) {
   int pos_x = (screen_w - win_w) / 2;
   int pos_y = (screen_h - win_h) / 2;
 
-  HWND hwnd = CreateWindowExW(0, kWindowClassName, kWindowTitle, style, pos_x, pos_y, win_w, win_h,
-                              nullptr, nullptr, hinstance, nullptr);
+  HWND hwnd = CreateWindowExW(0, kWindowClassName,
+                              L"首都高赛车X - 启动配置 (Shutokou Battle X Launcher)", style, pos_x,
+                              pos_y, win_w, win_h, nullptr, nullptr, hinstance, nullptr);
   if (!hwnd) {
     return 1;
   }
