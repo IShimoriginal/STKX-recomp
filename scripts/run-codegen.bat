@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
-title Shutokou Battle X - ReXGlue AOT Codegen / 静态重编译代码生成工具
+title Shutokou Battle X - ReXGlue AOT Codegen
 
 cd /d "%~dp0.."
 
@@ -17,19 +17,18 @@ set "LOG_FILE=%CD%\logs\codegen_latest.log"
 type nul > "%LOG_FILE%"
 
 echo ==============================================================================
-echo   Shutokou Battle X [首都高赛车X] - ReXGlue Ahead-Of-Time Codegen
-echo   Static Recompilation Code Generator / 静态重编译代码生成工具
-echo   Root / 根目录: %CD%
-echo   Log  / 日志  : %LOG_FILE%
+echo   Shutokou Battle X [Tokyo Xtreme Racer] - ReXGlue Ahead-Of-Time Codegen
+call :PRINT_CN "  \u9996\u90FD\u9AD8\u8D5B\u8F66X - ReXGlue \u9759\u6001\u91CD\u7F16\u8BD1\u4EE3\u7801\u751F\u6210\u5DE5\u5177"
+echo   Root: %CD%
+echo   Log:  %LOG_FILE%
 echo ==============================================================================
 echo.
 
 echo [1/3] Checking game files...
 if not exist "game_root\default.xex" (
     echo [ERROR] Game executable not found: %CD%\game_root\default.xex
-    echo [错误]  未找到游戏可执行文件: %CD%\game_root\default.xex
     echo Please make sure default.xex and DATA are placed in %CD%\game_root\
-    echo 请确保已将正版解包的 default.xex 与 DATA 目录放入 %CD%\game_root\
+    call :PRINT_CN "[\u9519\u8BEF] \u672A\u627E\u5230 game_root\\default.xex\uFF0C\u8BF7\u786E\u4FDD\u5DF2\u653E\u5165\u6B63\u7248\u89E3\u5305\u7684 default.xex \u4E0E DATA \u76EE\u5F55\uFF01"
     goto :script_exit
 )
 echo   [OK] Found game executable: game_root\default.xex
@@ -39,7 +38,7 @@ echo [2/3] Checking dependencies and rexglue tool...
 call "scripts\setup-game-assets.bat" --check-only
 if !ERRORLEVEL! neq 0 (
     echo [ERROR] Environment or dependencies are incomplete. Please run scripts\setup-game-assets.bat first.
-    echo [错误]  环境或第三方依赖尚未就绪，请先运行 scripts\setup-game-assets.bat 完成安装！
+    call :PRINT_CN "[\u9519\u8BEF] \u73AF\u5883\u6216\u7B2C\u4E09\u65B9\u4F9D\u8D56\u5C1A\u672A\u5C31\u7EEA\uFF0C\u8BF7\u5148\u8FD0\u884C scripts\\setup-game-assets.bat \u5B8C\u6210\u5B89\u88C5\uFF01"
     goto :script_exit
 )
 
@@ -58,8 +57,8 @@ if exist "out\build\win-amd64\build.ninja" (
     echo Checking rexglue.exe tool...
     cmake --build out/build/win-amd64 --config Release --target rexglue >> "%LOG_FILE%" 2>&1
     if !ERRORLEVEL! neq 0 (
-        echo [ERROR] Failed to update rexglue.exe! Check log: %LOG_FILE%
-        echo [错误]  更新构建 rexglue.exe 失败！请查看日志: %LOG_FILE%
+        echo [ERROR] Failed to update rexglue.exe. Check log: %LOG_FILE%
+        call :PRINT_CN "[\u9519\u8BEF] \u66F4\u65B0\u6216\u6784\u5EFA rexglue.exe \u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"
         powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
         goto :script_exit
     )
@@ -77,15 +76,15 @@ if exist "out\build\win-amd64\build.ninja" (
     cmake --preset win-amd64 > "%LOG_FILE%" 2>&1
     if !ERRORLEVEL! neq 0 (
         echo [ERROR] CMake configuration failed. Check log: %LOG_FILE%
-        echo [错误]  CMake 配置失败！请检查日志: %LOG_FILE%
+        call :PRINT_CN "[\u9519\u8BEF] CMake \u914D\u7F6E\u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"
         goto :script_exit
     )
 
     echo Building rexglue compiler...
     cmake --build out/build/win-amd64 --config Release --target rexglue >> "%LOG_FILE%" 2>&1
     if !ERRORLEVEL! neq 0 (
-        echo [ERROR] Failed to build rexglue.exe! Check log: %LOG_FILE%
-        echo [错误]  编译 rexglue.exe 失败！请检查日志: %LOG_FILE%
+        echo [ERROR] Failed to build rexglue.exe. Check log: %LOG_FILE%
+        call :PRINT_CN "[\u9519\u8BEF] \u66F4\u65B0\u6216\u6784\u5EFA rexglue.exe \u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"
         goto :script_exit
     )
 
@@ -102,7 +101,8 @@ if exist "out\build\win-amd64\build.ninja" (
     ) else if exist "build\rexglue.exe" (
         set "REXGLUE_BIN=build\rexglue.exe"
     ) else (
-        echo [ERROR] rexglue.exe not found after build. / 编译后未找到 rexglue.exe。
+        echo [ERROR] rexglue.exe not found after build.
+        call :PRINT_CN "[\u9519\u8BEF] \u7F16\u8BD1\u540E\u672A\u627E\u5230 rexglue.exe\uFF01"
         goto :script_exit
     )
 )
@@ -114,18 +114,26 @@ echo [3/3] Generating Ahead-Of-Time C++ code for Shutokou Battle X...
 echo Command: "!REXGLUE_BIN!" codegen manifest.toml --ignore-stamp
 "!REXGLUE_BIN!" codegen manifest.toml --ignore-stamp
 if !ERRORLEVEL! neq 0 (
-    echo [ERROR] Codegen failed. / AOT 代码生成失败！
+    echo [ERROR] Codegen failed.
+    call :PRINT_CN "[\u9519\u8BEF] AOT \u4EE3\u7801\u751F\u6210\u5931\u8D25\uFF01"
     goto :script_exit
 )
 
 echo.
 echo ==============================================================================
-echo [SUCCESS] AOT Codegen completed successfully. / AOT 静态代码生成成功！
-echo Generated C++ source files in / 生成源码目录: %CD%\src\generated\entrypoint\
-echo Log saved to / 日志文件: %LOG_FILE%
-echo Next step / 下一步请运行: scripts\build-windows.bat
+echo [SUCCESS] AOT Codegen completed successfully.
+call :PRINT_CN "[\u6210\u529F] AOT \u9759\u6001\u4EE3\u7801\u751F\u6210\u6210\u529F\uFF01\u4E0B\u4E00\u6B65\u8BF7\u8FD0\u884C: scripts\\build-windows.bat"
+echo Generated C++ source files in: %CD%\src\generated\entrypoint\
+echo Log saved to: %LOG_FILE%
+echo Next step: run scripts\build-windows.bat
 echo ==============================================================================
 
 :script_exit
 echo.
-set /p "_EXIT_WAIT=Press Enter to close this window / 请按 Enter 键关闭窗口..."
+call :PRINT_CN "\u8BF7\u6309 Enter \u952E\u5173\u95ED\u7A97\u53E3..."
+set /p "_EXIT_WAIT=Press Enter to close this window..."
+exit /b 0
+
+:PRINT_CN
+powershell -NoProfile -Command "Write-Host ([regex]::Unescape('%~1'))"
+exit /b 0

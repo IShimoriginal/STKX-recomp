@@ -58,8 +58,8 @@ Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) ahead-of-time (AO
 scripts\setup-game-assets.bat
 ```
 脚本采用**统一 `downloads\` 目录校验安装流程**：
-1. **自动检测与自动安装底层在线组件**：脚本启动时会先扫描 `downloads\` 目录并自动校验安装已放入的有效安装包；若检测到缺少无法作为单文件离线分发的底层依赖（如 **VS2022 Build Tools**），会自动调用 `winget` 进行安装。
-2. **自动输出精确单文件直链（`downloads\DOWNLOAD_LINKS.txt`）**：若仍有未安装的组件（包括 `Git-2.48.1-64-bit.exe`、`cmake-3.31.5-windows-x86_64.msi`、`ninja-win.zip`、`LLVM-19.1.7-win64.exe` 以及 18 个 `thirdparty/` 源码 `.zip` 包），脚本会直接输出**精确到单个安装包的下载直链**并保存至 `downloads\DOWNLOAD_LINKS.txt`。
+1. **自动扫描 `downloads\` 并校验安装**：脚本启动时会先扫描 `downloads\` 目录并自动校验、安装/解压所有已放入的有效安装包（含 `vs_BuildTools.exe` 自动静默勾选 C++ 构建工具链，无需依赖 `winget`）。
+2. **自动输出精确单文件直链（`downloads\DOWNLOAD_LINKS.txt`）**：若仍有未安装的组件（包括 `Git-2.48.1-64-bit.exe`、`cmake-3.31.5-windows-x86_64.msi`、`ninja-win.zip`、`LLVM-19.1.7-win64.exe`、`vs_BuildTools.exe` 以及 18 个 `thirdparty/` 源码 `.zip` 包），脚本会直接输出**精确到单个安装包的下载直链**并保存至 `downloads\DOWNLOAD_LINKS.txt`。
 3. **统一存放于 `downloads\` 校验安装**：
    - **选项 `[1]`（脚本自动下载）**：由脚本自动将缺失安装包下载至 `downloads\` 目录，随后统一校验并安装。
    - **选项 `[2]`（弱网/手动下载补全）**：您可根据 `downloads\DOWNLOAD_LINKS.txt` 中的直链，使用浏览器或下载工具自行下载缺失文件，**保持原文件名且无需手动解压**，全部放入项目根目录下的 **`downloads\`** 文件夹，然后选择 `[2]`（或重新运行脚本），脚本会自动校验 `downloads\` 中已有的安装包，完好的包直接安装/解压，仍有缺失则继续提示补全。
@@ -185,8 +185,8 @@ Then run the environment and asset verification wizard (checks `game_root/`, too
 scripts\setup-game-assets.bat
 ```
 The script uses a **unified `downloads\` verification and installation workflow**:
-1. **Auto-Detection & Online Bootstrapper Handling**: On startup, the script scans `downloads\` and automatically verifies and installs any valid packages already placed there. For underlying dependencies that do not have a standalone single-file offline installer (such as **VS2022 Build Tools**), the script automatically invokes `winget` right after detection.
-2. **Exact Direct Single-File Links (`downloads\DOWNLOAD_LINKS.txt`)**: If any components are still missing (including `Git-2.48.1-64-bit.exe`, `cmake-3.31.5-windows-x86_64.msi`, `ninja-win.zip`, `LLVM-19.1.7-win64.exe`, and the 18 `thirdparty/` `.zip` archives), the script immediately exports **exact direct single-file download URLs** to `downloads\DOWNLOAD_LINKS.txt`.
+1. **Auto-Scan & Unified Installer Handling**: On startup, the script scans `downloads\` and automatically verifies and installs/extracts any valid packages already placed there (including `vs_BuildTools.exe`, which automatically installs MSVC C++ Build Tools & Windows SDK without needing `winget`).
+2. **Exact Direct Single-File Links (`downloads\DOWNLOAD_LINKS.txt`)**: If any components are still missing (including `Git-2.48.1-64-bit.exe`, `cmake-3.31.5-windows-x86_64.msi`, `ninja-win.zip`, `LLVM-19.1.7-win64.exe`, `vs_BuildTools.exe`, and the 18 `thirdparty/` `.zip` archives), the script immediately exports **exact direct single-file download URLs** to `downloads\DOWNLOAD_LINKS.txt`.
 3. **Unified Verification & Installation in `downloads\`**:
    - **Option `[1]` (Script Auto-Download)**: The script automatically downloads missing packages into `downloads\`, then verifies and installs them.
    - **Option `[2]` (Slow Network / Manual Download)**: Download the missing files yourself using the direct URLs in `downloads\DOWNLOAD_LINKS.txt` and place them directly into the **`downloads\`** folder in the project root (**keep original filenames, do NOT extract manually**). Then select `[2]` (or re-run the script): it will verify all packages in `downloads\`, install/extract valid ones, and prompt you for any remaining missing packages.

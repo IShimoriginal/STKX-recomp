@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
-title Shutokou Battle X - Windows Native Builder / Windows 原生编译构建工具
+title Shutokou Battle X - Windows Native Builder
 
 cd /d "%~dp0.."
 
@@ -17,10 +17,10 @@ set "LOG_FILE=%CD%\logs\build_latest.log"
 type nul > "%LOG_FILE%"
 
 echo ==============================================================================
-echo   Shutokou Battle X [首都高赛车X] - Windows Native Builder
-echo   Windows Native Executable ^& Launcher Builder / Windows 原生程序编译构建工具
-echo   Root / 根目录: %CD%
-echo   Log  / 日志  : %LOG_FILE%
+echo   Shutokou Battle X - Windows Native Builder
+call :PRINT_CN "  \u9996\u90FD\u9AD8\u8D5B\u8F66X - Windows \u539F\u751F\u7A0B\u5E8F\u7F16\u8BD1\u6784\u5EFA\u5DE5\u5177"
+echo   Root: %CD%
+echo   Log:  %LOG_FILE%
 echo ==============================================================================
 echo.
 
@@ -37,9 +37,9 @@ if defined REXGLUE_EXEC (
     echo [0/2] Syncing recompiled functions from manifest.toml via !REXGLUE_EXEC!...
     "!REXGLUE_EXEC!" codegen manifest.toml --ignore-stamp >> "%LOG_FILE%" 2>&1
 ) else if not exist "src\generated\entrypoint\shutokou_battle_x_init.h" (
-    echo [WARNING] Missing src\generated\entrypoint sources. / 未检测到已生成的入口源码。
+    echo [WARNING] Missing src\generated\entrypoint sources.
     echo If codegen has not run yet, run: scripts\run-codegen.bat
-    echo 若尚未执行代码生成，请先运行: scripts\run-codegen.bat
+    call :PRINT_CN "[\u63D0\u793A] \u672A\u68C0\u6D4B\u5230\u5DF2\u751F\u6210\u7684\u5165\u53E3\u6E90\u7801\uFF0C\u82E5\u5C1A\u672A\u6267\u884C\u4EE3\u7801\u751F\u6210\uFF0C\u8BF7\u5148\u8FD0\u884C: scripts\\run-codegen.bat"
     echo.
 )
 
@@ -48,8 +48,9 @@ echo Logging to: %LOG_FILE%
 
 cmake --preset win-amd64 -DREXGLUE_USE_D3D12=ON -DREXGLUE_USE_VULKAN=ON -DREXGLUE_ENABLE_FIDELITYFX=ON > "%LOG_FILE%" 2>&1
 if !ERRORLEVEL! neq 0 (
-    echo [ERROR] CMake configuration failed. / CMake 配置失败！
-    echo Check log / 请检查日志: %LOG_FILE%
+    echo [ERROR] CMake configuration failed.
+    echo Check log: %LOG_FILE%
+    call :PRINT_CN "[\u9519\u8BEF] CMake \u914D\u7F6E\u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"
     echo.
     echo --- Error Summary ---
     powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
@@ -61,8 +62,9 @@ echo [2/3] Checking recompiler toolchain and syncing codegen...
 echo Updating rexglue recompiler tool...
 cmake --build out/build/win-amd64 --config Release --target rexglue >> "%LOG_FILE%" 2>&1
 if !ERRORLEVEL! neq 0 (
-    echo [ERROR] Failed to build rexglue.exe! / 编译 rexglue.exe 失败！
-    echo Check log / 请检查日志: %LOG_FILE%
+    echo [ERROR] Failed to build rexglue.exe.
+    echo Check log: %LOG_FILE%
+    call :PRINT_CN "[\u9519\u8BEF] \u66F4\u65B0\u6216\u6784\u5EFA rexglue.exe \u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"
     echo.
     echo --- Error Summary ---
     powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
@@ -81,7 +83,7 @@ if not defined REXGLUE_EXEC if exist "..\ShutokouBattleX\rexglue.exe" set "REXGL
 
 if not defined REXGLUE_EXEC (
     echo [ERROR] rexglue.exe not found. Cannot synchronize manifest.toml.
-    echo [错误]  未找到 rexglue.exe，无法同步 manifest.toml！
+    call :PRINT_CN "[\u9519\u8BEF] \u672A\u627E\u5230 rexglue.exe\uFF0C\u65E0\u6CD5\u540C\u6B65 manifest.toml\uFF01"
     goto :script_exit
 )
 
@@ -89,7 +91,7 @@ echo [Codegen] Translating PPC functions via !REXGLUE_EXEC!...
 "!REXGLUE_EXEC!" codegen manifest.toml --ignore-stamp
 if !ERRORLEVEL! neq 0 (
     echo [ERROR] Codegen failed. Refusing to build stale generated files.
-    echo [错误]  代码生成失败！已中止编译以避免使用过期源码。
+    call :PRINT_CN "[\u9519\u8BEF] \u4EE3\u7801\u751F\u6210\u5931\u8D25\uFF01\u5DF2\u4E2D\u6B62\u7F16\u8BD1\u4EE5\u907F\u514D\u4F7F\u7528\u8FC7\u671F\u6E90\u7801\u3002"
     goto :script_exit
 )
 echo [OK] Codegen synchronized successfully.
@@ -101,7 +103,7 @@ REM Refresh CMake configuration so any newly generated sources.cmake entries are
 cmake --preset win-amd64 >> "%LOG_FILE%" 2>&1
 if !ERRORLEVEL! neq 0 (
     echo [ERROR] CMake reconfiguration after codegen failed. Check %LOG_FILE%
-    echo [错误]  代码生成后重新配置 CMake 失败！请查看 %LOG_FILE%
+    call :PRINT_CN "[\u9519\u8BEF] \u4EE3\u7801\u751F\u6210\u540E\u91CD\u65B0\u914D\u7F6E CMake \u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"
     powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
     goto :script_exit
 )
@@ -123,13 +125,15 @@ if !ERRORLEVEL! neq 0 (
     cmake --build out/build/win-amd64 --config Release --target shutokou_battle_x Launcher rexruntime rexgpu-xenos
 )
 if !ERRORLEVEL! neq 0 (
-    echo [ERROR] Build failed. / 编译失败！请检查日志: %LOG_FILE%
+    echo [ERROR] Build failed. Check log: %LOG_FILE%
+    call :PRINT_CN "[\u9519\u8BEF] \u7F16\u8BD1\u5931\u8D25\uFF01\u8BF7\u68C0\u67E5\u65E5\u5FD7\u6587\u4EF6\uFF01"
     goto :script_exit
 )
 
 echo.
 echo ==============================================================================
-echo [SUCCESS] Build completed successfully. / 编译构建成功完成！
+echo [SUCCESS] Build completed successfully.
+call :PRINT_CN "[\u6210\u529F] \u7F16\u8BD1\u6784\u5EFA\u6210\u529F\u5B8C\u6210\uFF01"
 
 set "OUT_EXE="
 if exist "out\win-amd64\Release\shutokou_battle_x.exe" set "OUT_EXE=out\win-amd64\Release\shutokou_battle_x.exe"
@@ -140,7 +144,7 @@ if not defined OUT_EXE if exist "build\Release\shutokou_battle_x.exe" set "OUT_E
 if not defined OUT_EXE if exist "build\shutokou_battle_x.exe" set "OUT_EXE=build\shutokou_battle_x.exe"
 
 if defined OUT_EXE (
-    echo Executable / 可执行文件: %CD%\!OUT_EXE!
+    echo Executable: %CD%\!OUT_EXE!
 
     REM Auto-deploy to ..\ShutokouBattleX if sibling directory exists
     if exist "..\ShutokouBattleX" (
@@ -176,9 +180,15 @@ echo   - Zero-page memory protection fix (null dereference immunity)
 echo   - Full indirect call table for entrypoint functions
 echo   - Dynamic physical delta timing (stable high speed physics)
 echo.
-echo Log file / 日志文件: %LOG_FILE%
+echo Log file: %LOG_FILE%
 echo ==============================================================================
 
 :script_exit
 echo.
-set /p "_EXIT_WAIT=Press Enter to close this window / 请按 Enter 键关闭窗口..."
+call :PRINT_CN "\u8BF7\u6309 Enter \u952E\u5173\u95ED\u7A97\u53E3..."
+set /p "_EXIT_WAIT=Press Enter to close this window..."
+exit /b 0
+
+:PRINT_CN
+powershell -NoProfile -Command "Write-Host ([regex]::Unescape('%~1'))"
+exit /b 0
