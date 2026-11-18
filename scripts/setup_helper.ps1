@@ -212,6 +212,12 @@ if ($Action -eq 'verify') {
             Get-ChildItem -Path $tmp | Move-Item -Destination $it.target
         }
         if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
+        if ($it.name -eq 'libmspack' -and (Test-Path 'thirdparty\libmspack\libmspack\mspack\lzxd.c')) {
+            $cabDir = 'thirdparty\libmspack\cabextract\mspack'
+            if ((Test-Path "$cabDir\lzxd.c") -and ((Get-Item "$cabDir\lzxd.c").Length -lt 200)) {
+                Copy-Item -Path 'thirdparty\libmspack\libmspack\mspack\*' -Destination $cabDir -Force
+            }
+        }
         if (Test-Path $it.sentinel) {
             Write-Host ("  [Installed] " + $it.name)
         } else {
