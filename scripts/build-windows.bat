@@ -198,5 +198,5 @@ if /i not "%~1"=="--no-pause" (
 exit /b %SCRIPT_EXIT_CODE%
 
 :PRINT_CN
-powershell -NoProfile -Command "Write-Host ([regex]::Unescape('%~1'))"
+powershell -NoProfile -Command "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); [Console]::WriteLine([regex]::Unescape('%~1'))"
 exit /b 0

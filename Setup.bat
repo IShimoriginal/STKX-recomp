@@ -61,7 +61,7 @@ REM Stage 2/3: AOT Codegen
 REM ------------------------------------------------------------------------------
 echo.
 call :PRINT_CN "=== [Stage 2/3] Running AOT Codegen / \u7B2C 2 \u6B65\uFF1A\u6267\u884C AOT \u9759\u6001\u4EE3\u7801\u751F\u6210 ==="
-call "scripts\run-codegen.bat" --no-pause
+call "scripts\run-codegen.bat" --no-pause --skip-check
 if !ERRORLEVEL! neq 0 (
     call :PRINT_CN "[\u9519\u8BEF] AOT \u4EE3\u7801\u751F\u6210\u5931\u8D25\uFF0C\u8BF7\u67E5\u770B logs\\codegen_latest.log\u3002"
     goto :setup_exit
@@ -114,5 +114,5 @@ set /p "_EXIT_WAIT=Press Enter to close this window..."
 exit /b 0
 
 :PRINT_CN
-powershell -NoProfile -Command "Write-Host ([regex]::Unescape('%~1'))"
+powershell -NoProfile -Command "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); [Console]::WriteLine([regex]::Unescape('%~1'))"
 exit /b 0

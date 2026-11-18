@@ -434,6 +434,7 @@ launcher.ini
 
 # STKX-recomp: Third-party libraries fetched via scripts/download-dependencies.bat or .gitmodules
 thirdparty/FFmpeg/
+thirdparty/fidelityfx/
 thirdparty/cli11/
 thirdparty/fmt/
 thirdparty/glslang/

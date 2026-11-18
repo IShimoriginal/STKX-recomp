@@ -40,12 +40,14 @@ echo   [OK] Found game executable: game_root\default.xex
 
 echo.
 echo [2/3] Checking dependencies and rexglue tool...
-call "scripts\setup-game-assets.bat" --check-only
-if !ERRORLEVEL! neq 0 (
-    echo [ERROR] Environment or dependencies are incomplete. Please run scripts\setup-game-assets.bat first.
-    call :PRINT_CN "[\u9519\u8BEF] \u73AF\u5883\u6216\u7B2C\u4E09\u65B9\u4F9D\u8D56\u5C1A\u672A\u5C31\u7EEA\uFF0C\u8BF7\u5148\u8FD0\u884C scripts\\setup-game-assets.bat \u5B8C\u6210\u5B89\u88C5\uFF01"
-    set "SCRIPT_EXIT_CODE=1"
-    goto :script_exit
+if /i not "%~2"=="--skip-check" (
+    call "scripts\setup-game-assets.bat" --check-only
+    if !ERRORLEVEL! neq 0 (
+        echo [ERROR] Environment or dependencies are incomplete. Please run scripts\setup-game-assets.bat first.
+        call :PRINT_CN "[\u9519\u8BEF] \u73AF\u5883\u6216\u7B2C\u4E09\u65B9\u4F9D\u8D56\u5C1A\u672A\u5C31\u7EEA\uFF0C\u8BF7\u5148\u8FD0\u884C scripts\\setup-game-assets.bat \u5B8C\u6210\u5B89\u88C5\uFF01"
+        set "SCRIPT_EXIT_CODE=1"
+        goto :script_exit
+    )
 )
 
 set "REXGLUE_BIN="
@@ -148,5 +150,5 @@ if /i not "%~1"=="--no-pause" (
 exit /b %SCRIPT_EXIT_CODE%
 
 :PRINT_CN
-powershell -NoProfile -Command "Write-Host ([regex]::Unescape('%~1'))"
+powershell -NoProfile -Command "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); [Console]::WriteLine([regex]::Unescape('%~1'))"
 exit /b 0

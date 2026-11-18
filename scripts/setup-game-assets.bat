@@ -164,6 +164,8 @@ call :CHECK_LIB "vulkan-memory-allocator" "thirdparty\vulkan-memory-allocator\in
 call :CHECK_LIB "spirv-headers"           "thirdparty\spirv-headers\include\spirv\unified1\spirv.h"
 call :CHECK_LIB "spirv-tools"             "thirdparty\spirv-tools\include\spirv-tools\libspirv.h"
 call :CHECK_LIB "glslang"                 "thirdparty\glslang\SPIRV\SpvBuilder.h"
+call :CHECK_LIB "tracy"                   "thirdparty\tracy\CMakeLists.txt"
+call :CHECK_LIB "fidelityfx"              "thirdparty\fidelityfx\CMakeLists.txt"
 
 echo.
 echo ==============================================================================
@@ -247,7 +249,7 @@ REM ============================================================================
 REM Helper Subroutines
 REM ==============================================================================
 :PRINT_CN
-powershell -NoProfile -Command "Write-Host ([regex]::Unescape('%~1'))"
+powershell -NoProfile -Command "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); [Console]::WriteLine([regex]::Unescape('%~1'))"
 exit /b 0
 
 :CHECK_LIB

@@ -46,6 +46,9 @@ if(NOT WIN32)
 endif()
 
 # ── Fetch FidelityFX SDK ─────────────────────────────────────────────────
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/fidelityfx/CMakeLists.txt")
+    set(FETCHCONTENT_SOURCE_DIR_FIDELITYFX "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/fidelityfx")
+endif()
 include(FetchContent)
 FetchContent_Declare(
     fidelityfx
