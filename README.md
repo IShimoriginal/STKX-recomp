@@ -19,7 +19,7 @@ Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) ahead-of-time (AO
 
 ### 前言
 
-本项目 95% 以上修改依赖 AI 生成，仅作个人学习研究使用。本人不鼓励、不支持非法下载及盗版，请从您拥有的合法正版游戏副本提取游戏本体档案！
+本项目构思及维护均由一人完成，95% 以上代码依赖 AI 生成，仅作个人学习研究使用，不确保后续更新进度及时。本人不鼓励、不支持非法下载及盗版，请从您拥有的合法正版游戏副本提取游戏本体档案！
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/37ac4718-fbd9-4f28-be9f-46086c7b8f78" width="48%" alt="Copy" />
@@ -162,7 +162,7 @@ scripts\build-windows.bat
 
 ### Preface
 
-Over 95% of the modifications in this project were generated with AI assistance and are intended solely for personal learning and research. Illegal downloading and piracy are neither encouraged nor supported—please extract the game files only from a legal copy that you legitimately own!
+This project is conceived and maintained by a single developer, with over 95% of the code generated with AI assistance. It is intended solely for personal learning and research, and timely future updates are not guaranteed. Illegal downloading and piracy are neither encouraged nor supported—please extract the game files only from a legal copy that you legitimately own!
 
 > **Format Notice:** Only **unpacked XEX-format game copies** (containing `default.xex` and the `DATA/` directory) are supported. **`.iso` disc image files are NOT supported.**
 

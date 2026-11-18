@@ -1,7 +1,7 @@
-# Enforce LF line endings for all text files (except Windows batch scripts which require CRLF in cmd.exe)
+# Enforce LF line endings for text files, but keep raw CRLF in repo blobs for Windows batch scripts (so GitHub Download ZIP preserves CRLF)
 * text=auto eol=lf
-*.bat text eol=crlf
-*.cmd text eol=crlf
+*.bat -text
+*.cmd -text
 
 # Explicitly mark binary files
 *.png binary

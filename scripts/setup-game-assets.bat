@@ -282,39 +282,49 @@ if exist "%LIB_SENTINEL%" (
 exit /b 0
 
 :WRITE_DOWNLOAD_LINKS
-> "%LINKS_FILE%" (
-    echo ==============================================================================
-    echo Shutokou Battle X - Exact Direct Download Links / 缺失组件精确单文件下载清单
-    echo Target Folder / 统一存放目录: %DOWNLOAD_DIR%\
-    echo Instructions  / 使用说明:
-    echo   All links below are direct single-file downloads. Place downloaded files
-    echo   directly into %DOWNLOAD_DIR%\ ^(keep original filenames, DO NOT extract^).
-    echo   以下链接均为精确单文件直链，下载后无需解压或重命名，请直接放入 %DOWNLOAD_DIR%\ 目录。
-    echo ==============================================================================
-    echo.
-    if !MISS_GIT! equ 1   echo   [Toolchain] Git-2.48.1-64-bit.exe            : https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-64-bit.exe
-    if !MISS_CMAKE! equ 1 echo   [Toolchain] cmake-3.31.5-windows-x86_64.msi  : https://github.com/Kitware/CMake/releases/download/v3.31.5/cmake-3.31.5-windows-x86_64.msi
-    if !MISS_NINJA! equ 1 echo   [Toolchain] ninja-win.zip                    : https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip
-    if !MISS_CLANG! equ 1 echo   [Toolchain] LLVM-19.1.7-win64.exe            : https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.7/LLVM-19.1.7-win64.exe
-    if not exist "thirdparty\cli11\include\CLI\CLI.hpp"                                echo   [Library]   cli11.zip                        : https://github.com/CLIUtils/CLI11/archive/HEAD.zip
-    if not exist "thirdparty\tomlplusplus\include\toml++\toml.hpp"                     echo   [Library]   tomlplusplus.zip                 : https://github.com/marzer/tomlplusplus/archive/HEAD.zip
-    if not exist "thirdparty\simde\simde\simde-common.h"                               echo   [Library]   simde.zip                        : https://github.com/simd-everywhere/simde/archive/HEAD.zip
-    if not exist "thirdparty\xxHash\xxhash.c"                                          echo   [Library]   xxHash-v0.8.3.zip                : https://github.com/Cyan4973/xxHash/archive/refs/tags/v0.8.3.zip
-    if not exist "thirdparty\spdlog\include\spdlog\spdlog.h"                           echo   [Library]   spdlog.zip                       : https://github.com/gabime/spdlog/archive/HEAD.zip
-    if not exist "thirdparty\fmt\include\fmt\format.h"                                 echo   [Library]   fmt.zip                          : https://github.com/fmtlib/fmt/archive/HEAD.zip
-    if not exist "thirdparty\utfcpp\source\utf8.h"                                     echo   [Library]   utfcpp.zip                       : https://github.com/nemtrif/utfcpp/archive/HEAD.zip
-    if not exist "thirdparty\sdl3\cmake\macros.cmake"                                  echo   [Library]   SDL-release-3.4.x.zip            : https://github.com/libsdl-org/SDL/archive/refs/heads/release-3.4.x.zip
-    if not exist "thirdparty\imgui\imgui.cpp"                                          echo   [Library]   imgui.zip                        : https://github.com/ocornut/imgui/archive/HEAD.zip
-    if not exist "thirdparty\inja\include\inja\inja.hpp"                               echo   [Library]   inja.zip                         : https://github.com/pantor/inja/archive/HEAD.zip
-    if not exist "thirdparty\libmspack\cabextract\mspack\lzxd.c"                       echo   [Library]   libmspack.zip                    : https://github.com/kyz/libmspack/archive/HEAD.zip
-    if not exist "thirdparty\o1heap\o1heap\o1heap.c"                                   echo   [Library]   o1heap.zip                       : https://github.com/pavel-kirienko/o1heap/archive/HEAD.zip
-    if not exist "thirdparty\FFmpeg\libavutil\adler32.c"                               echo   [Library]   FFmpeg-xenia-ffmpeg-canary-full.zip : https://github.com/wmarti/FFmpeg/archive/refs/heads/xenia-ffmpeg-canary-full.zip
-    if not exist "thirdparty\vulkan-headers\include\vulkan\vulkan.h"                   echo   [Library]   vulkan-headers.zip               : https://github.com/KhronosGroup/Vulkan-Headers/archive/HEAD.zip
-    if not exist "thirdparty\vulkan-memory-allocator\include\vk_mem_alloc.h"           echo   [Library]   vulkan-memory-allocator.zip      : https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/HEAD.zip
-    if not exist "thirdparty\spirv-headers\include\spirv\unified1\spirv.h"             echo   [Library]   spirv-headers.zip                : https://github.com/KhronosGroup/SPIRV-Headers/archive/HEAD.zip
-    if not exist "thirdparty\spirv-tools\include\spirv-tools\libspirv.h"               echo   [Library]   spirv-tools.zip                  : https://github.com/KhronosGroup/SPIRV-Tools/archive/HEAD.zip
-    if not exist "thirdparty\glslang\SPIRV\SpvBuilder.h"                               echo   [Library]   glslang-11.13.0.zip              : https://github.com/KhronosGroup/glslang/archive/refs/tags/11.13.0.zip
-)
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "$dl = '%DOWNLOAD_DIR%';" ^
+  "$out = '%LINKS_FILE%';" ^
+  "$lines = [System.Collections.Generic.List[string]]::new();" ^
+  "$lines.Add('==============================================================================');" ^
+  "$lines.Add('Shutokou Battle X - Exact Direct Download Links / 缺失组件精确单文件下载清单');" ^
+  "$lines.Add('Target Folder / 统一存放目录: ' + $dl + '\');" ^
+  "$lines.Add('Instructions  / 使用说明:');" ^
+  "$lines.Add('  All links below are direct single-file downloads. Place downloaded files');" ^
+  "$lines.Add('  directly into ' + $dl + '\ (keep original filenames, DO NOT extract).');" ^
+  "$lines.Add('  以下链接均为精确单文件直链，下载后无需解压或重命名，请直接放入 ' + $dl + '\ 目录。');" ^
+  "$lines.Add('==============================================================================');" ^
+  "$lines.Add('');" ^
+  "if ('!MISS_GIT!' -eq '1')   { $lines.Add('  [Toolchain] Git-2.48.1-64-bit.exe               : https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-64-bit.exe') }" ^
+  "if ('!MISS_CMAKE!' -eq '1') { $lines.Add('  [Toolchain] cmake-3.31.5-windows-x86_64.msi     : https://github.com/Kitware/CMake/releases/download/v3.31.5/cmake-3.31.5-windows-x86_64.msi') }" ^
+  "if ('!MISS_NINJA!' -eq '1') { $lines.Add('  [Toolchain] ninja-win.zip                       : https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip') }" ^
+  "if ('!MISS_CLANG!' -eq '1') { $lines.Add('  [Toolchain] LLVM-19.1.7-win64.exe               : https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.7/LLVM-19.1.7-win64.exe') }" ^
+  "$items = @(" ^
+  "  @{ file='cli11.zip';                        sentinel='thirdparty\cli11\include\CLI\CLI.hpp';          url='https://github.com/CLIUtils/CLI11/archive/HEAD.zip' }," ^
+  "  @{ file='tomlplusplus.zip';                 sentinel='thirdparty\tomlplusplus\include\toml++\toml.hpp'; url='https://github.com/marzer/tomlplusplus/archive/HEAD.zip' }," ^
+  "  @{ file='simde.zip';                        sentinel='thirdparty\simde\simde\simde-common.h';         url='https://github.com/simd-everywhere/simde/archive/HEAD.zip' }," ^
+  "  @{ file='xxHash-v0.8.3.zip';                sentinel='thirdparty\xxHash\xxhash.c';                    url='https://github.com/Cyan4973/xxHash/archive/refs/tags/v0.8.3.zip' }," ^
+  "  @{ file='spdlog.zip';                       sentinel='thirdparty\spdlog\include\spdlog\spdlog.h';     url='https://github.com/gabime/spdlog/archive/HEAD.zip' }," ^
+  "  @{ file='fmt.zip';                          sentinel='thirdparty\fmt\include\fmt\format.h';           url='https://github.com/fmtlib/fmt/archive/HEAD.zip' }," ^
+  "  @{ file='utfcpp.zip';                       sentinel='thirdparty\utfcpp\source\utf8.h';               url='https://github.com/nemtrif/utfcpp/archive/HEAD.zip' }," ^
+  "  @{ file='SDL-release-3.4.x.zip';            sentinel='thirdparty\sdl3\cmake\macros.cmake';            url='https://github.com/libsdl-org/SDL/archive/refs/heads/release-3.4.x.zip' }," ^
+  "  @{ file='imgui.zip';                        sentinel='thirdparty\imgui\imgui.cpp';                    url='https://github.com/ocornut/imgui/archive/HEAD.zip' }," ^
+  "  @{ file='inja.zip';                         sentinel='thirdparty\inja\include\inja\inja.hpp';         url='https://github.com/pantor/inja/archive/HEAD.zip' }," ^
+  "  @{ file='libmspack.zip';                    sentinel='thirdparty\libmspack\cabextract\mspack\lzxd.c'; url='https://github.com/kyz/libmspack/archive/HEAD.zip' }," ^
+  "  @{ file='o1heap.zip';                       sentinel='thirdparty\o1heap\o1heap\o1heap.c';             url='https://github.com/pavel-kirienko/o1heap/archive/HEAD.zip' }," ^
+  "  @{ file='FFmpeg-xenia-ffmpeg-canary-full.zip'; sentinel='thirdparty\FFmpeg\libavutil\adler32.c';      url='https://github.com/wmarti/FFmpeg/archive/refs/heads/xenia-ffmpeg-canary-full.zip' }," ^
+  "  @{ file='vulkan-headers.zip';               sentinel='thirdparty\vulkan-headers\include\vulkan\vulkan.h';         url='https://github.com/KhronosGroup/Vulkan-Headers/archive/HEAD.zip' }," ^
+  "  @{ file='vulkan-memory-allocator.zip';      sentinel='thirdparty\vulkan-memory-allocator\include\vk_mem_alloc.h'; url='https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/HEAD.zip' }," ^
+  "  @{ file='spirv-headers.zip';                sentinel='thirdparty\spirv-headers\include\spirv\unified1\spirv.h';   url='https://github.com/KhronosGroup/SPIRV-Headers/archive/HEAD.zip' }," ^
+  "  @{ file='spirv-tools.zip';                  sentinel='thirdparty\spirv-tools\include\spirv-tools\libspirv.h';     url='https://github.com/KhronosGroup/SPIRV-Tools/archive/HEAD.zip' }," ^
+  "  @{ file='glslang-11.13.0.zip';              sentinel='thirdparty\glslang\SPIRV\SpvBuilder.h';                     url='https://github.com/KhronosGroup/glslang/archive/refs/tags/11.13.0.zip' }" ^
+  ");" ^
+  "foreach ($it in $items) {" ^
+  "  if (-not (Test-Path $it.sentinel)) {" ^
+  "    $lines.Add(('  [Library]   {0,-35} : {1}' -f $it.file, $it.url));" ^
+  "  }" ^
+  "}" ^
+  "[System.IO.File]::WriteAllLines($out, $lines, [System.Text.UTF8Encoding]::new($false));"
 exit /b 0
 
 :PS_DOWNLOAD_MISSING_PACKAGES
@@ -426,7 +436,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "  @{ name='spirv-tools';             sentinel='thirdparty\spirv-tools\include\spirv-tools\libspirv.h';     target='thirdparty\spirv-tools';             patterns=@('*spirv-tools*.zip','*SPIRV-Tools*.zip') }," ^
   "  @{ name='glslang';                 sentinel='thirdparty\glslang\SPIRV\SpvBuilder.h';                     target='thirdparty\glslang';                 patterns=@('*glslang*.zip') }" ^
   ");" ^
-  "$zips = $files | Where-Object { $_.Extension -eq '.zip' };" ^
+  "$zips = $files | Where-Object { $_.Extension -eq '.zip' -and $_.Name -notlike '*ninja*' };" ^
   "foreach ($it in $items) {" ^
   "  if (Test-Path $it.sentinel) { continue }" ^
   "  $match = $null;" ^
