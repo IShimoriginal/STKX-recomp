@@ -430,6 +430,7 @@ src/generated/
 GEMINI.md
 milestone_progress.txt
 launch-game.bat
+manifest_candidates.toml
 launcher.ini
 
 # STKX-recomp: Third-party libraries fetched via scripts/download-dependencies.bat or .gitmodules

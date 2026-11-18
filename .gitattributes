@@ -17,3 +17,16 @@
 *.obj binary
 *.o binary
 *.pdb binary
+
+# Exclude non-user / developer-only files from GitHub Release Source code (zip)
+.github/ export-ignore
+tests/ export-ignore
+.clang-format export-ignore
+.clang-tidy export-ignore
+.cmake-format.yaml export-ignore
+.editorconfig export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+.gitmodules export-ignore
+CONTRIBUTING.md export-ignore
+manifest_candidates.toml export-ignore
