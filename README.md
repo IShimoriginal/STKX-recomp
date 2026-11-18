@@ -47,6 +47,8 @@ Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) ahead-of-time (AO
 请自行搜索相关教程，将您合法持有的 Xbox 360 正版《首都高バトルX》（Title ID: `474507D1`）光盘通过 Redump 等合法方式提取到电脑本地，并解包为 XEX 格式文件（包含 `default.xex` 与 `DATA/` 文件夹；不接受 `.iso` 镜像）。
 
 #### 1. 放置游戏文件并检测环境
+> **目录规划建议**：建议先将本项目解压/放置在一个磁盘空间充足的目录（如 `D:\STKX-recomp\`），并在其**同级目录**提前新建一个名为 **`ShutokouBattleX`** 的空文件夹（即 `..\ShutokouBattleX\`，例如 `D:\ShutokouBattleX\`）。后续编译完成时，脚本会自动将可独立运行的成品游戏与资源同步到该目录中，方便直接启动或整包迁移。
+
 将提取并解包后的游戏文件放置于 `game_root/` 目录：
 - `game_root/default.xex`
 - `game_root/DATA/`
@@ -62,27 +64,22 @@ scripts\setup-game-assets.bat
    - **选项 `[1]`（脚本自动下载）**：由脚本自动将缺失安装包下载至 `downloads\` 目录，随后统一校验并安装。
    - **选项 `[2]`（弱网/手动下载补全）**：您可根据 `downloads\DOWNLOAD_LINKS.txt` 中的直链，使用浏览器或下载工具自行下载缺失文件，**保持原文件名且无需手动解压**，全部放入项目根目录下的 **`downloads\`** 文件夹，然后选择 `[2]`（或重新运行脚本），脚本会自动校验 `downloads\` 中已有的安装包，完好的包直接安装/解压，仍有缺失则继续提示补全。
 
-#### 2. 下载第三方依赖
-若未在第 1 步完成全部第三方依赖拉取，可单独运行以下命令通过 Git 补全 `thirdparty/`（后续 `run-codegen.bat` 也会自动检测并补全）：
-```cmd
-scripts\download-dependencies.bat
-```
-
-#### 3. 运行代码生成 (AOT Codegen)
+#### 2. 运行代码生成 (AOT Codegen)
 ```cmd
 scripts\run-codegen.bat
 ```
 *(使用 `rexglue.exe` 根据 `manifest.toml` 将 PowerPC 机器码静态翻译为 C++ 代码，输出至 `src/generated/entrypoint/`)*
 
-#### 4. 编译 Windows 原生程序
+#### 3. 编译 Windows 原生程序
 ```cmd
 scripts\build-windows.bat
 ```
-编译完成后，最终可执行文件、启动器与运行库位于：
+编译完成后，可执行文件、启动器与运行库位于：
 - `out\win-amd64\Release\shutokou_battle_x.exe`
 - `out\win-amd64\Release\Launcher.exe`
 
-*(可选：若上一级目录存在 `..\ShutokouBattleX\`，构建脚本会自动将 `shutokou_battle_x.exe`、`Launcher.exe`、所需 `.dll` 及 `rexglue.exe` 同步到该目录并生成 `launch-game.bat`；若该目录下尚无 `game_root\`，也会自动复制过去。)*
+**启动与迁移说明**：
+- 如果您已按第 1 步在同级目录提前新建了 `..\ShutokouBattleX\` 文件夹，构建脚本在编译完成后已自动将 `shutokou_battle_x.exe`、`Launcher.exe`、全部运行所需的 `.dll`、`launch-game.bat` 以及 `game_root\`（若目标目录尚无该文件夹）同步过去。您**可以直接在 `..\ShutokouBattleX\` 中运行 `Launcher.exe`（或 `shutokou_battle_x.exe`）启动游戏**，也可以随时将整个 `ShutokouBattleX` 文件夹作为绿色独立游戏目录自由移动或迁移到其他路径/电脑。
 
 ---
 
@@ -134,7 +131,6 @@ scripts\build-windows.bat
 │       └── wheel_input.h/.cpp     # 方向盘力反馈与模拟线性输入
 ├── scripts/
 │   ├── build-windows.bat         # 一键编译 Windows 客户端与启动器脚本
-│   ├── download-dependencies.bat # 第三方依赖下载脚本
 │   ├── run-codegen.bat           # 一键运行 AOT 代码生成脚本
 │   └── setup-game-assets.bat     # 资源目录、工具链与离线依赖安装向导脚本
 └── docs/
@@ -178,6 +174,8 @@ This project is conceived and maintained by a single developer, with over 95% of
 Please search online for guides on how to dump (e.g., via Redump) your legally owned Xbox 360 disc of **Shutokou Battle X** (Title ID: `474507D1`) to your PC and unpack it into XEX format (containing `default.xex` and the `DATA/` directory; `.iso` images are not supported).
 
 #### 1. Place Game Assets & Check Environment
+> **Folder Layout Tip:** We recommend placing this project folder in a drive/directory with sufficient disk space (e.g., `D:\STKX-recomp\`), and creating an empty sibling folder named **`ShutokouBattleX`** alongside it in the parent directory (i.e., `..\ShutokouBattleX\`, such as `D:\ShutokouBattleX\`) in advance. Once compilation finishes, the build script will automatically deploy a clean, standalone copy of the game and assets there for easy launching or portability.
+
 Place the extracted XEX game files into the `game_root/` directory:
 - `game_root/default.xex`
 - `game_root/DATA/`
@@ -193,19 +191,13 @@ The script uses a **unified `downloads\` verification and installation workflow*
    - **Option `[1]` (Script Auto-Download)**: The script automatically downloads missing packages into `downloads\`, then verifies and installs them.
    - **Option `[2]` (Slow Network / Manual Download)**: Download the missing files yourself using the direct URLs in `downloads\DOWNLOAD_LINKS.txt` and place them directly into the **`downloads\`** folder in the project root (**keep original filenames, do NOT extract manually**). Then select `[2]` (or re-run the script): it will verify all packages in `downloads\`, install/extract valid ones, and prompt you for any remaining missing packages.
 
-#### 2. Download Third-Party Dependencies
-If you did not fetch the third-party libraries in Step 1, you can run the dependency script directly (`run-codegen.bat` will also check and fetch them automatically if missing):
-```cmd
-scripts\download-dependencies.bat
-```
-
-#### 3. Run AOT Codegen
+#### 2. Run AOT Codegen
 ```cmd
 scripts\run-codegen.bat
 ```
 *(Translates PowerPC machine code into C++ via `rexglue.exe` using `manifest.toml`, outputting to `src/generated/entrypoint/`)*
 
-#### 4. Build the Windows Native Executable
+#### 3. Build the Windows Native Executable
 ```cmd
 scripts\build-windows.bat
 ```
@@ -213,7 +205,8 @@ Once built, the executable, native launcher, and runtime DLLs are located at:
 - `out\win-amd64\Release\shutokou_battle_x.exe`
 - `out\win-amd64\Release\Launcher.exe`
 
-*(Optional: if `..\ShutokouBattleX\` exists in the parent directory, the build script automatically syncs `shutokou_battle_x.exe`, `Launcher.exe`, required `.dll` files, and `rexglue.exe` there, generates `launch-game.bat`, and copies `game_root\` if `..\ShutokouBattleX\game_root\` does not exist yet.)*
+**Launching & Portability:**
+- If you created the sibling `..\ShutokouBattleX\` folder in Step 1, the build script has already automatically copied `shutokou_battle_x.exe`, `Launcher.exe`, all required runtime `.dll` files, `launch-game.bat`, and `game_root\` (if not yet present) into `..\ShutokouBattleX\`. You can **launch the game directly from `..\ShutokouBattleX\`** (via `Launcher.exe` or `shutokou_battle_x.exe`), or freely move/migrate the entire `ShutokouBattleX` folder anywhere as a self-contained game directory.
 
 ---
 
@@ -265,7 +258,6 @@ Once built, the executable, native launcher, and runtime DLLs are located at:
 │       └── wheel_input.h/.cpp     # Force-feedback wheel & analog input
 ├── scripts/
 │   ├── build-windows.bat         # One-click Windows build script
-│   ├── download-dependencies.bat # Third-party dependency fetcher
 │   ├── run-codegen.bat           # One-click AOT codegen script
 │   └── setup-game-assets.bat     # Asset, toolchain & offline dependency wizard
 └── docs/

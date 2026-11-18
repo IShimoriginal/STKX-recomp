@@ -36,8 +36,11 @@ echo   [OK] Found game executable: game_root\default.xex
 
 echo.
 echo [2/3] Checking dependencies and rexglue tool...
-if exist "scripts\download-dependencies.bat" (
-    call "scripts\download-dependencies.bat" --no-pause
+call "scripts\setup-game-assets.bat" --check-only
+if !ERRORLEVEL! neq 0 (
+    echo [ERROR] Environment or dependencies are incomplete. Please run scripts\setup-game-assets.bat first.
+    echo [错误]  环境或第三方依赖尚未就绪，请先运行 scripts\setup-game-assets.bat 完成安装！
+    goto :script_exit
 )
 
 set "REXGLUE_BIN="
@@ -48,7 +51,7 @@ if not defined REXGLUE_BIN if exist "out\build\win-amd64\rexglue.exe" set "REXGL
 if not defined REXGLUE_BIN if exist "build\Release\rexglue.exe" set "REXGLUE_BIN=build\Release\rexglue.exe"
 if not defined REXGLUE_BIN if exist "build\rexglue.exe" set "REXGLUE_BIN=build\rexglue.exe"
 if not defined REXGLUE_BIN if exist "dist\rexglue.exe" set "REXGLUE_BIN=dist\rexglue.exe"
-if not defined REXGLUE_BIN if exist "D:\ShutokouBattleX\rexglue.exe" set "REXGLUE_BIN=D:\ShutokouBattleX\rexglue.exe"
+if not defined REXGLUE_BIN if exist "..\ShutokouBattleX\rexglue.exe" set "REXGLUE_BIN=..\ShutokouBattleX\rexglue.exe"
 
 REM Ensure rexglue.exe is up to date with any source patches
 if exist "out\build\win-amd64\build.ninja" (

@@ -77,7 +77,7 @@ if not defined REXGLUE_EXEC if exist "out\build\win-amd64\rexglue.exe" set "REXG
 if not defined REXGLUE_EXEC if exist "build\Release\rexglue.exe" set "REXGLUE_EXEC=build\Release\rexglue.exe"
 if not defined REXGLUE_EXEC if exist "build\rexglue.exe" set "REXGLUE_EXEC=build\rexglue.exe"
 if not defined REXGLUE_EXEC if exist "dist\rexglue.exe" set "REXGLUE_EXEC=dist\rexglue.exe"
-if not defined REXGLUE_EXEC if exist "D:\ShutokouBattleX\rexglue.exe" set "REXGLUE_EXEC=D:\ShutokouBattleX\rexglue.exe"
+if not defined REXGLUE_EXEC if exist "..\ShutokouBattleX\rexglue.exe" set "REXGLUE_EXEC=..\ShutokouBattleX\rexglue.exe"
 
 if not defined REXGLUE_EXEC (
     echo [ERROR] rexglue.exe not found. Cannot synchronize manifest.toml.
@@ -93,8 +93,8 @@ if !ERRORLEVEL! neq 0 (
     goto :script_exit
 )
 echo [OK] Codegen synchronized successfully.
-if exist "D:\ShutokouBattleX" (
-    copy /y "!REXGLUE_EXEC!" "D:\ShutokouBattleX\rexglue.exe" >nul 2>nul
+if exist "..\ShutokouBattleX" (
+    copy /y "!REXGLUE_EXEC!" "..\ShutokouBattleX\rexglue.exe" >nul 2>nul
 )
 
 REM Refresh CMake configuration so any newly generated sources.cmake entries are included
@@ -142,19 +142,19 @@ if not defined OUT_EXE if exist "build\shutokou_battle_x.exe" set "OUT_EXE=build
 if defined OUT_EXE (
     echo Executable / 可执行文件: %CD%\!OUT_EXE!
 
-    REM Auto-deploy to D:\ShutokouBattleX if directory exists
-    if exist "D:\ShutokouBattleX" (
-        echo Syncing updated binary and DLLs to D:\ShutokouBattleX\...
-        copy /y "!OUT_EXE!" "D:\ShutokouBattleX\" >nul 2>nul
-        if exist "out\win-amd64\Release\rexruntime.dll" copy /y "out\win-amd64\Release\rexruntime.dll" "D:\ShutokouBattleX\" >nul 2>nul
-        if exist "out\win-amd64\Release\rexgpu-xenos.dll" copy /y "out\win-amd64\Release\rexgpu-xenos.dll" "D:\ShutokouBattleX\" >nul 2>nul
-        if exist "out\win-amd64\Release\rexglue.exe" copy /y "out\win-amd64\Release\rexglue.exe" "D:\ShutokouBattleX\" >nul 2>nul
-        if exist "out\win-amd64\Release\*.dll" copy /y "out\win-amd64\Release\*.dll" "D:\ShutokouBattleX\" >nul 2>nul
-        if exist "out\win-amd64\Release\Launcher.exe" copy /y "out\win-amd64\Release\Launcher.exe" "D:\ShutokouBattleX\Launcher.exe" >nul 2>nul
-        echo @echo off > "D:\ShutokouBattleX\launch-game.bat"
-        echo cd /d "%%~dp0" >> "D:\ShutokouBattleX\launch-game.bat"
-        echo start "" "%%~dp0shutokou_battle_x.exe" >> "D:\ShutokouBattleX\launch-game.bat"
-        echo [OK] Updated shutokou_battle_x.exe, Launcher.exe, rexruntime.dll, rexgpu-xenos.dll in D:\ShutokouBattleX\
+    REM Auto-deploy to ..\ShutokouBattleX if sibling directory exists
+    if exist "..\ShutokouBattleX" (
+        echo Syncing updated binary and DLLs to ..\ShutokouBattleX\...
+        copy /y "!OUT_EXE!" "..\ShutokouBattleX\" >nul 2>nul
+        if exist "out\win-amd64\Release\rexruntime.dll" copy /y "out\win-amd64\Release\rexruntime.dll" "..\ShutokouBattleX\" >nul 2>nul
+        if exist "out\win-amd64\Release\rexgpu-xenos.dll" copy /y "out\win-amd64\Release\rexgpu-xenos.dll" "..\ShutokouBattleX\" >nul 2>nul
+        if exist "out\win-amd64\Release\rexglue.exe" copy /y "out\win-amd64\Release\rexglue.exe" "..\ShutokouBattleX\" >nul 2>nul
+        if exist "out\win-amd64\Release\*.dll" copy /y "out\win-amd64\Release\*.dll" "..\ShutokouBattleX\" >nul 2>nul
+        if exist "out\win-amd64\Release\Launcher.exe" copy /y "out\win-amd64\Release\Launcher.exe" "..\ShutokouBattleX\Launcher.exe" >nul 2>nul
+        echo @echo off > "..\ShutokouBattleX\launch-game.bat"
+        echo cd /d "%%~dp0" >> "..\ShutokouBattleX\launch-game.bat"
+        echo start "" "%%~dp0shutokou_battle_x.exe" >> "..\ShutokouBattleX\launch-game.bat"
+        echo [OK] Updated shutokou_battle_x.exe, Launcher.exe, rexruntime.dll, rexgpu-xenos.dll in ..\ShutokouBattleX\
     )
 
     if exist "..\ShutokouBattleX\" if not exist "..\ShutokouBattleX\game_root\" if exist "game_root\" (
