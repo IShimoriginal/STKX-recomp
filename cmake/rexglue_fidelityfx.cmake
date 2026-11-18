@@ -48,6 +48,7 @@ endif()
 # ── Fetch FidelityFX SDK ─────────────────────────────────────────────────
 if(EXISTS "${REXGLUE_ROOT}/thirdparty/fidelityfx/CMakeLists.txt")
     set(fidelityfx_SOURCE_DIR "${REXGLUE_ROOT}/thirdparty/fidelityfx")
+    set(fidelityfx_BINARY_DIR "${CMAKE_BINARY_DIR}/_deps/fidelityfx-build")
     set(fidelityfx_POPULATED TRUE)
 else()
     include(FetchContent)
@@ -124,11 +125,13 @@ add_subdirectory("${fidelityfx_SOURCE_DIR}/ffx-api" "${fidelityfx_BINARY_DIR}/ff
 if(TARGET amd_fidelityfx_vk)
     set_target_properties(amd_fidelityfx_vk PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES ""
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
     )
 endif()
 if(TARGET amd_fidelityfx_dx12)
     set_target_properties(amd_fidelityfx_dx12 PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES ""
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
     )
 endif()
 

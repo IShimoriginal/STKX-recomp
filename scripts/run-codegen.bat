@@ -120,6 +120,15 @@ if exist "out\build\win-amd64\build.ninja" (
 
 echo   [OK] Recompiler ready: !REXGLUE_BIN!
 
+for %%D in ("!REXGLUE_BIN!") do set "REXGLUE_DIR=%%~dpD"
+if not exist "!REXGLUE_DIR!amd_fidelityfx_dx12.dll" (
+    if exist "bin\amd_fidelityfx_dx12.dll" (
+        copy /y "bin\amd_fidelityfx_dx12.dll" "!REXGLUE_DIR!" >nul 2>nul
+    ) else if exist "thirdparty\fidelityfx\PrebuiltSignedDLL\amd_fidelityfx_dx12.dll" (
+        copy /y "thirdparty\fidelityfx\PrebuiltSignedDLL\amd_fidelityfx_dx12.dll" "!REXGLUE_DIR!" >nul 2>nul
+    )
+)
+
 echo.
 echo [3/3] Generating Ahead-Of-Time C++ code for Shutokou Battle X...
 echo Command: "!REXGLUE_BIN!" codegen manifest.toml --ignore-stamp
