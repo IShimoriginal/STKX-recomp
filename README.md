@@ -154,6 +154,14 @@ scripts\build-windows.bat
 
 ---
 
+## ☕ 支持我的爱好（或单纯想要请我喝一杯咖啡）
+本项目使用完全免费，如你在任何收费渠道下载本项目副本即表示你已受骗！
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/74ca58b2-0ab7-4d2d-8f5f-a8392d72e519" width="48%" alt="Code" />
+</p>
+
+---
+
 ## English
 
 ### Preface
