@@ -29,6 +29,9 @@ namespace {
 
 constexpr wchar_t kWindowClassName[] = L"SBXLauncherWindowClass";
 constexpr wchar_t kIniSection[] = L"Launcher";
+#ifndef STKX_RECOMP_VERSION_W
+#define STKX_RECOMP_VERSION_W L"0.6.0"
+#endif
 
 enum ControlId : int {
   kIdLangCombo = 1000,
@@ -168,10 +171,12 @@ void ApplyLanguage(int lang) {
   const bool en = (g_state.language == 1);
 
   SetWindowTextW(g_state.hwnd,
-                 en ? L"Shutokou Battle X - Launcher"
-                    : L"首都高赛车X - 启动配置 (Shutokou Battle X Launcher)");
+                 en ? L"Shutokou Battle X - Launcher v" STKX_RECOMP_VERSION_W
+                    : L"首都高赛车X - 启动配置 v" STKX_RECOMP_VERSION_W
+                      L" (Shutokou Battle X Launcher)");
   SetWindowTextW(g_state.title_label,
-                 en ? L"Shutokou Battle X" : L"首都高赛车X (Shutokou Battle X)");
+                 en ? L"Shutokou Battle X v" STKX_RECOMP_VERSION_W
+                    : L"首都高赛车X v" STKX_RECOMP_VERSION_W L" (Shutokou Battle X)");
   SetWindowTextW(g_state.lang_label, L"语言 / Language:");
   SetWindowTextW(g_state.api_label, en ? L"Graphics API:" : L"图形 API:");
   SetWindowTextW(g_state.internal_res_label, en ? L"Internal Res:" : L"内部分辨率:");
@@ -557,9 +562,10 @@ int WINAPI wWinMain(HINSTANCE hinstance, HINSTANCE, PWSTR, int ncmd_show) {
   int pos_x = (screen_w - win_w) / 2;
   int pos_y = (screen_h - win_h) / 2;
 
-  HWND hwnd = CreateWindowExW(0, kWindowClassName,
-                              L"首都高赛车X - 启动配置 (Shutokou Battle X Launcher)", style, pos_x,
-                              pos_y, win_w, win_h, nullptr, nullptr, hinstance, nullptr);
+  HWND hwnd = CreateWindowExW(
+      0, kWindowClassName,
+      L"首都高赛车X - 启动配置 v" STKX_RECOMP_VERSION_W L" (Shutokou Battle X Launcher)", style,
+      pos_x, pos_y, win_w, win_h, nullptr, nullptr, hinstance, nullptr);
   if (!hwnd) {
     return 1;
   }

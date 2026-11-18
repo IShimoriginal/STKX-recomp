@@ -2,8 +2,8 @@
  * @file        main.cpp
  * @brief       Entry point for 首都高バトルX (Shutokou Battle X) Windows Native Recompilation
  * 
- * @copyright   Copyright (c) 2026 ReXGlue / Shutokou Battle X Project
- * @license     MIT / BSD-3-Clause
+ * @copyright   Copyright (c) 2026 STKX-recomp / ReXGlue Project
+ * @license     BSD-3-Clause
  */
 
 #include "shutokou_battle_x_app.h"

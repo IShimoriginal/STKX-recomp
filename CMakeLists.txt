@@ -302,6 +302,9 @@ endif()
 # Shutokou Battle X (首都高バトルX) Recompilation Game Target
 # Builds shutokou_battle_x.exe when recompiled sources exist
 # ==============================================================================
+set(STKX_RECOMP_VERSION "0.6.0")
+message(STATUS "[SBX] STKX-recomp Version: ${STKX_RECOMP_VERSION}")
+
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/entrypoint/sources.cmake")
     message(STATUS "[SBX] Recompiled sources detected in src/generated/entrypoint/")
     include("${CMAKE_CURRENT_SOURCE_DIR}/src/generated/entrypoint/sources.cmake")
@@ -334,6 +337,9 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/entrypoint/sources.cmake")
     )
 
     rexglue_configure_target(shutokou_battle_x GPU_PLUGINS xenos)
+    target_compile_definitions(shutokou_battle_x PRIVATE
+        STKX_RECOMP_VERSION="${STKX_RECOMP_VERSION}"
+    )
     target_link_libraries(shutokou_battle_x PRIVATE
         rex::runtime
     )
@@ -341,5 +347,9 @@ endif()
 
 if(WIN32)
     add_executable(Launcher WIN32 src/launcher/main.cpp)
+    target_compile_definitions(Launcher PRIVATE
+        STKX_RECOMP_VERSION="${STKX_RECOMP_VERSION}"
+        STKX_RECOMP_VERSION_W=L"${STKX_RECOMP_VERSION}"
+    )
     target_link_libraries(Launcher PRIVATE user32 gdi32 comctl32)
 endif()

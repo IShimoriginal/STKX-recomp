@@ -1,5 +1,6 @@
 # 首都高バトルX (Shutokou Battle X) - Windows Native Recompilation
 
+[![Version](https://img.shields.io/badge/Version-0.6.0-blue.svg)]()
 [![Platform](https://img.shields.io/badge/Platform-Windows%20x64%20(DirectX%2012%20%2F%20Vulkan)-blue.svg)]()
 [![Recompiler](https://img.shields.io/badge/Recompiler-ReXGlue%20%2F%20ShiftGlue-emerald.svg)]()
 [![Title ID](https://img.shields.io/badge/Title%20ID-474507D1-orange.svg)]()
@@ -160,6 +161,12 @@ scripts\build-windows.bat
 
 ---
 
+### 开源协议
+
+本项目主体代码基于 **[BSD 3-Clause License](LICENSE)** 开源（保留上游 ReXGlue 与 Xenia 项目的原始版权声明）。`thirdparty/` 下的第三方依赖库（含 MIT、BSD、Apache-2.0、Zlib 以及 LGPL v2.1+ 的 `FFmpeg` / `libmspack` 等）各自遵循其原始许可协议。
+
+---
+
 ### 声明
 
 本项目是独立的开源研究与静态重编译工程，**不包含**任何受版权保护的游戏专有资源（如原始可执行文件、3D 模型、音效、贴图等）。用户必须合法拥有 Xbox 360 版《首都高バトルX》（Title ID: `474507D1`）正版光盘并在本地自行提取数据。本项目仅针对日版《首都高バトルX》进行开发与实测，未对其他地区版本进行过测试。
@@ -304,6 +311,12 @@ Once built, the executable, native launcher, and runtime DLLs are located at:
 - **[MCLA-recomp](https://github.com/arcanite24/MCLA-recomp)** — Reference for Xbox 360 racing game static recompilation and high-FPS adaptation.
 - **[pinyon-shift](https://github.com/arcanite24/pinyon-shift)** — Reference for static recompilation project structure and implementation.
 - **[Google Gemini](https://gemini.google.com/) (Google DeepMind)** — Assisted with code generation and debugging.
+
+---
+
+### License
+
+This project is licensed under the **[BSD 3-Clause License](LICENSE)** (retaining the original copyright notices of ReXGlue and Xenia). Third-party libraries under `thirdparty/` (including MIT, BSD, Apache-2.0, Zlib, and LGPL v2.1+ components such as `FFmpeg` and `libmspack`) remain subject to their respective original licenses.
 
 ---
 
