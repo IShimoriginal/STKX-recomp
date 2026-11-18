@@ -46,19 +46,21 @@ if(NOT WIN32)
 endif()
 
 # ── Fetch FidelityFX SDK ─────────────────────────────────────────────────
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/fidelityfx/CMakeLists.txt")
-    set(FETCHCONTENT_SOURCE_DIR_FIDELITYFX "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/fidelityfx")
-endif()
-include(FetchContent)
-FetchContent_Declare(
-    fidelityfx
-    GIT_REPOSITORY https://github.com/rexglue/FidelityFX-SDK.git
-    GIT_TAG        eee08db1688ac3d1275a70b728f4a8ba22914213
-    GIT_SHALLOW    OFF
-)
-FetchContent_GetProperties(fidelityfx)
-if(NOT fidelityfx_POPULATED)
-    FetchContent_Populate(fidelityfx)
+if(EXISTS "${REXGLUE_ROOT}/thirdparty/fidelityfx/CMakeLists.txt")
+    set(fidelityfx_SOURCE_DIR "${REXGLUE_ROOT}/thirdparty/fidelityfx")
+    set(fidelityfx_POPULATED TRUE)
+else()
+    include(FetchContent)
+    FetchContent_Declare(
+        fidelityfx
+        GIT_REPOSITORY https://github.com/rexglue/FidelityFX-SDK.git
+        GIT_TAG        eee08db1688ac3d1275a70b728f4a8ba22914213
+        GIT_SHALLOW    OFF
+    )
+    FetchContent_GetProperties(fidelityfx)
+    if(NOT fidelityfx_POPULATED)
+        FetchContent_Populate(fidelityfx)
+    endif()
 endif()
 
 set(REXGLUE_FIDELITYFX_SOURCE_DIR "${fidelityfx_SOURCE_DIR}" CACHE INTERNAL

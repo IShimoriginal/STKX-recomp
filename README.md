@@ -41,7 +41,11 @@ Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) ahead-of-time (AO
 
 #### 环境要求
 - **操作系统**：Windows 10 / 11 (x64)
-- **编译工具链**：Git、CMake (3.25+)、Ninja、LLVM/Clang (`clang` / `clang++`)、VS2022 / MSVC Build Tools
+- **磁盘空间**：安装与编译过程中约需 **9 GB** 可用空间（编译完成后的独立游戏目录约 **3 GB**）
+- **预计用时**：完整下载依赖与编译总用时约 **20–60 分钟**（视网络状况与 CPU 性能而定）
+- **编译工具链**：Git、CMake (3.25+)、Ninja、LLVM/Clang (`clang` / `clang++`)、VS2022 / MSVC Build Tools（可由下方安装向导自动检测并补齐）
+
+> **安装方式说明**：放置好下方的 `game_root/` 游戏文件后，您既可以直接双击根目录的 **`Setup.bat`** 一键按流程引导完成全部安装与编译（每步完成后按 Enter 进入下一步），也可以手动依序运行 `scripts\` 下的 3 个脚本（`setup-game-assets.bat` → `run-codegen.bat` → `build-windows.bat`）。
 
 #### 0. 准备正版游戏文件
 请自行搜索相关教程，将您合法持有的 Xbox 360 正版《首都高バトルX》（Title ID: `474507D1`）光盘通过 Redump 等合法方式提取到电脑本地，并解包为 XEX 格式文件（包含 `default.xex` 与 `DATA/` 文件夹；不接受 `.iso` 镜像）。
@@ -53,24 +57,26 @@ Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) ahead-of-time (AO
 - `game_root/default.xex`
 - `game_root/DATA/`
 
-然后运行环境与资源检测脚本（会自动检查 `game_root/`、编译工具链与 `thirdparty/` 依赖）：
+然后直接双击根目录的 **`Setup.bat`**（向导会自动调用第 1–3 步），或手动运行环境与资源检测脚本：
 ```cmd
 scripts\setup-game-assets.bat
 ```
 脚本采用**统一 `downloads\` 目录校验安装流程**：
 1. **自动扫描 `downloads\` 并校验安装**：脚本启动时会先扫描 `downloads\` 目录并自动校验、安装/解压所有已放入的有效安装包（含 `vs_BuildTools.exe` 自动静默勾选 C++ 构建工具链，无需依赖 `winget`）。
-2. **自动输出精确单文件直链（`downloads\DOWNLOAD_LINKS.txt`）**：若仍有未安装的组件（包括 `Git-2.48.1-64-bit.exe`、`cmake-3.31.5-windows-x86_64.msi`、`ninja-win.zip`、`LLVM-19.1.7-win64.exe`、`vs_BuildTools.exe` 以及 18 个 `thirdparty/` 源码 `.zip` 包），脚本会直接输出**精确到单个安装包的下载直链**并保存至 `downloads\DOWNLOAD_LINKS.txt`。
+2. **自动输出精确单文件直链（`downloads\DOWNLOAD_LINKS.txt`）**：若仍有未安装的组件（包括 `Git-2.48.1-64-bit.exe`、`cmake-3.31.5-windows-x86_64.msi`、`ninja-win.zip`、`LLVM-19.1.7-win64.exe`、`vs_BuildTools.exe` 以及 20 个 `thirdparty/` 源码 `.zip` 包），脚本会直接输出**精确到单个安装包的下载直链**并保存至 `downloads\DOWNLOAD_LINKS.txt`。
 3. **统一存放于 `downloads\` 校验安装**：
    - **选项 `[1]`（脚本自动下载）**：由脚本自动将缺失安装包下载至 `downloads\` 目录，随后统一校验并安装。
    - **选项 `[2]`（弱网/手动下载补全）**：您可根据 `downloads\DOWNLOAD_LINKS.txt` 中的直链，使用浏览器或下载工具自行下载缺失文件，**保持原文件名且无需手动解压**，全部放入项目根目录下的 **`downloads\`** 文件夹，然后选择 `[2]`（或重新运行脚本），脚本会自动校验 `downloads\` 中已有的安装包，完好的包直接安装/解压，仍有缺失则继续提示补全。
 
 #### 2. 运行代码生成 (AOT Codegen)
+*(若使用 `Setup.bat`，在第 1 步完成后按 Enter 键会自动进入本步骤)*
 ```cmd
 scripts\run-codegen.bat
 ```
 *(使用 `rexglue.exe` 根据 `manifest.toml` 将 PowerPC 机器码静态翻译为 C++ 代码，输出至 `src/generated/entrypoint/`)*
 
 #### 3. 编译 Windows 原生程序
+*(若使用 `Setup.bat`，在第 2 步完成后按 Enter 键会自动进入本步骤)*
 ```cmd
 scripts\build-windows.bat
 ```
@@ -115,9 +121,14 @@ scripts\build-windows.bat
 ### 目录结构
 
 ```text
+├── Setup.bat                     # 一键安装与编译引导向导（推荐入口）
 ├── CMakeLists.txt                # CMake 构建配置文件
 ├── CMakePresets.json             # Visual Studio 2022 / Ninja 预设
 ├── manifest.toml                 # ReXGlue 静态重编译配置清单
+├── game_root/                    # ★ 游戏本体存放目录（需自行放入正版解包文件）
+│   ├── default.xex               #   Xbox 360 主程序文件
+│   └── DATA/                     #   游戏模型、贴图、音频与着色器资源
+├── downloads/                    # 依赖安装包统一存放与校验目录（含 DOWNLOAD_LINKS.txt）
 ├── cmake/
 │   └── rexglue.cmake             # ReXGlue / ShiftGlue SDK 链接辅助模块
 ├── include/
@@ -130,9 +141,10 @@ scripts\build-windows.bat
 │       ├── framerate_patch.h/.cpp # 帧率与物理步长补丁
 │       └── wheel_input.h/.cpp     # 方向盘力反馈与模拟线性输入
 ├── scripts/
-│   ├── build-windows.bat         # 一键编译 Windows 客户端与启动器脚本
-│   ├── run-codegen.bat           # 一键运行 AOT 代码生成脚本
-│   └── setup-game-assets.bat     # 资源目录、工具链与离线依赖安装向导脚本
+│   ├── build-windows.bat         # 编译 Windows 客户端与启动器脚本
+│   ├── run-codegen.bat           # 运行 AOT 代码生成脚本
+│   ├── setup-game-assets.bat     # 资源目录、工具链与依赖检测向导脚本
+│   └── setup_helper.ps1          # 依赖直链导出、下载与归档校验辅助脚本
 └── docs/
     └── BUILD_WINDOWS.md          # 详细中文编译指南与常见问题
 ```
@@ -176,7 +188,11 @@ This project is conceived and maintained by a single developer, with over 95% of
 
 #### Requirements
 - **OS**: Windows 10 / 11 (x64)
-- **Toolchain**: Git, CMake (3.25+), Ninja, LLVM/Clang (`clang` / `clang++`), VS2022 / MSVC Build Tools
+- **Disk Space**: ~**9 GB** of free space required during installation and compilation (final standalone game folder is ~**3 GB**)
+- **Estimated Time**: ~**20–60 minutes** in total (depending on network speed and CPU performance)
+- **Toolchain**: Git, CMake (3.25+), Ninja, LLVM/Clang (`clang` / `clang++`), VS2022 / MSVC Build Tools (auto-checked and installed via the setup wizard below)
+
+> **Installation Options:** After placing your game files in `game_root/`, you can either double-click **`Setup.bat`** in the project root to run the entire setup and build pipeline step-by-step (pressing Enter between stages), or manually run the three scripts inside `scripts\` in order (`setup-game-assets.bat` → `run-codegen.bat` → `build-windows.bat`).
 
 #### 0. Prepare Legal Game Files
 Please search online for guides on how to dump (e.g., via Redump) your legally owned Xbox 360 disc of **Shutokou Battle X** (Title ID: `474507D1`) to your PC and unpack it into XEX format (containing `default.xex` and the `DATA/` directory; `.iso` images are not supported).
@@ -188,24 +204,26 @@ Place the extracted XEX game files into the `game_root/` directory:
 - `game_root/default.xex`
 - `game_root/DATA/`
 
-Then run the environment and asset verification wizard (checks `game_root/`, toolchain, and `thirdparty/` libraries):
+Then double-click **`Setup.bat`** in the project root (recommended), or manually run the environment and asset verification wizard:
 ```cmd
 scripts\setup-game-assets.bat
 ```
 The script uses a **unified `downloads\` verification and installation workflow**:
 1. **Auto-Scan & Unified Installer Handling**: On startup, the script scans `downloads\` and automatically verifies and installs/extracts any valid packages already placed there (including `vs_BuildTools.exe`, which automatically installs MSVC C++ Build Tools & Windows SDK without needing `winget`).
-2. **Exact Direct Single-File Links (`downloads\DOWNLOAD_LINKS.txt`)**: If any components are still missing (including `Git-2.48.1-64-bit.exe`, `cmake-3.31.5-windows-x86_64.msi`, `ninja-win.zip`, `LLVM-19.1.7-win64.exe`, `vs_BuildTools.exe`, and the 18 `thirdparty/` `.zip` archives), the script immediately exports **exact direct single-file download URLs** to `downloads\DOWNLOAD_LINKS.txt`.
+2. **Exact Direct Single-File Links (`downloads\DOWNLOAD_LINKS.txt`)**: If any components are still missing (including `Git-2.48.1-64-bit.exe`, `cmake-3.31.5-windows-x86_64.msi`, `ninja-win.zip`, `LLVM-19.1.7-win64.exe`, `vs_BuildTools.exe`, and the 20 `thirdparty/` `.zip` archives), the script immediately exports **exact direct single-file download URLs** to `downloads\DOWNLOAD_LINKS.txt`.
 3. **Unified Verification & Installation in `downloads\`**:
    - **Option `[1]` (Script Auto-Download)**: The script automatically downloads missing packages into `downloads\`, then verifies and installs them.
    - **Option `[2]` (Slow Network / Manual Download)**: Download the missing files yourself using the direct URLs in `downloads\DOWNLOAD_LINKS.txt` and place them directly into the **`downloads\`** folder in the project root (**keep original filenames, do NOT extract manually**). Then select `[2]` (or re-run the script): it will verify all packages in `downloads\`, install/extract valid ones, and prompt you for any remaining missing packages.
 
 #### 2. Run AOT Codegen
+*(If using `Setup.bat`, pressing Enter after Stage 1 automatically launches this step)*
 ```cmd
 scripts\run-codegen.bat
 ```
 *(Translates PowerPC machine code into C++ via `rexglue.exe` using `manifest.toml`, outputting to `src/generated/entrypoint/`)*
 
 #### 3. Build the Windows Native Executable
+*(If using `Setup.bat`, pressing Enter after Stage 2 automatically launches this step)*
 ```cmd
 scripts\build-windows.bat
 ```
@@ -250,9 +268,14 @@ Once built, the executable, native launcher, and runtime DLLs are located at:
 ### Directory Structure
 
 ```text
+├── Setup.bat                     # One-click setup & build wizard (recommended)
 ├── CMakeLists.txt                # CMake build configuration
 ├── CMakePresets.json             # Visual Studio 2022 / Ninja presets
 ├── manifest.toml                 # ReXGlue static recompilation manifest
+├── game_root/                    # ★ Game assets folder (place your unpacked copy here)
+│   ├── default.xex               #   Xbox 360 main executable
+│   └── DATA/                     #   Game models, textures, audio & shader assets
+├── downloads/                    # Unified package cache & verification folder (incl. DOWNLOAD_LINKS.txt)
 ├── cmake/
 │   └── rexglue.cmake             # ReXGlue / ShiftGlue SDK helper module
 ├── include/
@@ -265,9 +288,10 @@ Once built, the executable, native launcher, and runtime DLLs are located at:
 │       ├── framerate_patch.h/.cpp # Framerate & physics delta-time patches
 │       └── wheel_input.h/.cpp     # Force-feedback wheel & analog input
 ├── scripts/
-│   ├── build-windows.bat         # One-click Windows build script
-│   ├── run-codegen.bat           # One-click AOT codegen script
-│   └── setup-game-assets.bat     # Asset, toolchain & offline dependency wizard
+│   ├── build-windows.bat         # Windows client & launcher build script
+│   ├── run-codegen.bat           # AOT codegen script
+│   ├── setup-game-assets.bat     # Asset, toolchain & dependency setup wizard
+│   └── setup_helper.ps1          # Helper for direct links, downloads & archive verification
 └── docs/
     └── BUILD_WINDOWS.md          # Detailed build guide & FAQ
 ```

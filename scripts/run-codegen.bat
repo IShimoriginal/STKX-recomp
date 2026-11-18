@@ -63,11 +63,10 @@ if not defined REXGLUE_BIN if exist "..\ShutokouBattleX\rexglue.exe" set "REXGLU
 REM Ensure rexglue.exe is up to date with any source patches
 if exist "out\build\win-amd64\build.ninja" (
     echo Checking rexglue.exe tool...
-    cmake --build out/build/win-amd64 --config Release --target rexglue >> "%LOG_FILE%" 2>&1
+    powershell -NoProfile -Command "cmake --build out/build/win-amd64 --config Release --target rexglue --parallel 2>&1 | Tee-Object -FilePath '%LOG_FILE%' -Append; exit $LASTEXITCODE"
     if !ERRORLEVEL! neq 0 (
         echo [ERROR] Failed to update rexglue.exe. Check log: %LOG_FILE%
         call :PRINT_CN "[\u9519\u8BEF] \u66F4\u65B0\u6216\u6784\u5EFA rexglue.exe \u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"
-        powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
         set "SCRIPT_EXIT_CODE=1"
         goto :script_exit
     )
@@ -82,7 +81,7 @@ if exist "out\build\win-amd64\build.ninja" (
     if exist "out\build\win-amd64\CMakeCache.txt" del /f /q "out\build\win-amd64\CMakeCache.txt" >nul 2>nul
     if exist "build\CMakeCache.txt" del /f /q "build\CMakeCache.txt" >nul 2>nul
 
-    cmake --preset win-amd64 > "%LOG_FILE%" 2>&1
+    powershell -NoProfile -Command "cmake --preset win-amd64 2>&1 | Tee-Object -FilePath '%LOG_FILE%'; exit $LASTEXITCODE"
     if !ERRORLEVEL! neq 0 (
         echo [ERROR] CMake configuration failed. Check log: %LOG_FILE%
         call :PRINT_CN "[\u9519\u8BEF] CMake \u914D\u7F6E\u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"
@@ -91,7 +90,7 @@ if exist "out\build\win-amd64\build.ninja" (
     )
 
     echo Building rexglue compiler...
-    cmake --build out/build/win-amd64 --config Release --target rexglue >> "%LOG_FILE%" 2>&1
+    powershell -NoProfile -Command "cmake --build out/build/win-amd64 --config Release --target rexglue --parallel 2>&1 | Tee-Object -FilePath '%LOG_FILE%' -Append; exit $LASTEXITCODE"
     if !ERRORLEVEL! neq 0 (
         echo [ERROR] Failed to build rexglue.exe. Check log: %LOG_FILE%
         call :PRINT_CN "[\u9519\u8BEF] \u66F4\u65B0\u6216\u6784\u5EFA rexglue.exe \u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"

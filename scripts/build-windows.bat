@@ -51,28 +51,22 @@ if defined REXGLUE_EXEC (
 echo [1/3] Configuring CMake (LLVM Clang + Ninja)...
 echo Logging to: %LOG_FILE%
 
-cmake --preset win-amd64 -DREXGLUE_USE_D3D12=ON -DREXGLUE_USE_VULKAN=ON -DREXGLUE_ENABLE_FIDELITYFX=ON > "%LOG_FILE%" 2>&1
+powershell -NoProfile -Command "cmake --preset win-amd64 -DREXGLUE_USE_D3D12=ON -DREXGLUE_USE_VULKAN=ON -DREXGLUE_ENABLE_FIDELITYFX=ON 2>&1 | Tee-Object -FilePath '%LOG_FILE%'; exit $LASTEXITCODE"
 if !ERRORLEVEL! neq 0 (
     echo [ERROR] CMake configuration failed.
     echo Check log: %LOG_FILE%
     call :PRINT_CN "[\u9519\u8BEF] CMake \u914D\u7F6E\u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"
-    echo.
-    echo --- Error Summary ---
-    powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
     goto :script_exit
 )
 
 echo.
 echo [2/3] Checking recompiler toolchain and syncing codegen...
 echo Updating rexglue recompiler tool...
-cmake --build out/build/win-amd64 --config Release --target rexglue >> "%LOG_FILE%" 2>&1
+powershell -NoProfile -Command "cmake --build out/build/win-amd64 --config Release --target rexglue --parallel 2>&1 | Tee-Object -FilePath '%LOG_FILE%' -Append; exit $LASTEXITCODE"
 if !ERRORLEVEL! neq 0 (
     echo [ERROR] Failed to build rexglue.exe.
     echo Check log: %LOG_FILE%
     call :PRINT_CN "[\u9519\u8BEF] \u66F4\u65B0\u6216\u6784\u5EFA rexglue.exe \u5931\u8D25\uFF0C\u8BF7\u67E5\u770B\u65E5\u5FD7\u6587\u4EF6\uFF01"
-    echo.
-    echo --- Error Summary ---
-    powershell -NoProfile -Command "Get-Content '%LOG_FILE%' -Tail 25" 2>nul || type "%LOG_FILE%"
     goto :script_exit
 )
 
