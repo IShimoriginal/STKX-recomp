@@ -55,13 +55,12 @@ Based on the [ReXGlue](https://github.com/rexglue/rexglue-sdk) ahead-of-time (AO
 ```cmd
 scripts\setup-game-assets.bat
 ```
-当脚本检测到缺少工具链或第三方依赖时，会提供以下安装选项：
-- **网络良好时**：选择 `[1]` 一键自动下载并安装缺失组件（通过 `winget` 与 `git`）。
-- **网络条件较差 / 下载困难时（离线手动包指引）**：
-  1. 在脚本菜单中选择 **`[2]`**，脚本会输出所有缺失组件的直链，并同步保存至 `downloads\DOWNLOAD_LINKS.txt`。
-  2. **编译工具链安装包**（Git、CMake、Ninja、LLVM/Clang、VS2022 Build Tools）：根据 `downloads\DOWNLOAD_LINKS.txt` 中的链接，使用浏览器或下载工具下载后直接运行安装即可。
-  3. **第三方源码依赖压缩包（`.zip`）**：根据链接下载对应的 `.zip` 压缩包，**保持原文件名且不要手动解压**，全部放入项目根目录下的 **`downloads\`** 文件夹。
-  4. 放好所有压缩包后，按脚本提示输入 **`Y`**（或重新运行 `scripts\setup-game-assets.bat` 后选择 **`[3]`**），脚本会自动将 `downloads\` 中的所有 `.zip` 统一解压并安装到 `thirdparty\`。
+脚本采用**统一 `downloads\` 目录校验安装流程**：
+1. **自动检测与自动安装底层在线组件**：脚本启动时会先扫描 `downloads\` 目录并自动校验安装已放入的有效安装包；若检测到缺少无法作为单文件离线分发的底层依赖（如 **VS2022 Build Tools**），会自动调用 `winget` 进行安装。
+2. **自动输出精确单文件直链（`downloads\DOWNLOAD_LINKS.txt`）**：若仍有未安装的组件（包括 `Git-2.48.1-64-bit.exe`、`cmake-3.31.5-windows-x86_64.msi`、`ninja-win.zip`、`LLVM-19.1.7-win64.exe` 以及 18 个 `thirdparty/` 源码 `.zip` 包），脚本会直接输出**精确到单个安装包的下载直链**并保存至 `downloads\DOWNLOAD_LINKS.txt`。
+3. **统一存放于 `downloads\` 校验安装**：
+   - **选项 `[1]`（脚本自动下载）**：由脚本自动将缺失安装包下载至 `downloads\` 目录，随后统一校验并安装。
+   - **选项 `[2]`（弱网/手动下载补全）**：您可根据 `downloads\DOWNLOAD_LINKS.txt` 中的直链，使用浏览器或下载工具自行下载缺失文件，**保持原文件名且无需手动解压**，全部放入项目根目录下的 **`downloads\`** 文件夹，然后选择 `[2]`（或重新运行脚本），脚本会自动校验 `downloads\` 中已有的安装包，完好的包直接安装/解压，仍有缺失则继续提示补全。
 
 #### 2. 下载第三方依赖
 若未在第 1 步完成全部第三方依赖拉取，可单独运行以下命令通过 Git 补全 `thirdparty/`（后续 `run-codegen.bat` 也会自动检测并补全）：
@@ -187,13 +186,12 @@ Then run the environment and asset verification wizard (checks `game_root/`, too
 ```cmd
 scripts\setup-game-assets.bat
 ```
-If missing tools or libraries are detected, the script provides an interactive menu:
-- **If your network connection is stable**: select `[1]` for one-click automatic installation via `winget` and `git`.
-- **If your network connection is slow or unstable (offline/manual download guide)**:
-  1. Select **`[2]`** in the menu to print all missing download URLs and export them to `downloads\DOWNLOAD_LINKS.txt`.
-  2. **Toolchain installers** (Git, CMake, Ninja, LLVM/Clang, VS2022 Build Tools): download them using your browser or download manager from the links in `downloads\DOWNLOAD_LINKS.txt` and run the installers directly.
-  3. **Third-party source archives (`.zip`)**: download the `.zip` archives using the links in `downloads\DOWNLOAD_LINKS.txt` and place them directly into the **`downloads\`** folder in the project root (**keep the original `.zip` filenames and do NOT extract them manually**).
-  4. Once all archives are in place, enter **`Y`** at the prompt (or re-run `scripts\setup-game-assets.bat` and select **`[3]`**) to automatically extract and install all `.zip` archives from `downloads\` into `thirdparty\`.
+The script uses a **unified `downloads\` verification and installation workflow**:
+1. **Auto-Detection & Online Bootstrapper Handling**: On startup, the script scans `downloads\` and automatically verifies and installs any valid packages already placed there. For underlying dependencies that do not have a standalone single-file offline installer (such as **VS2022 Build Tools**), the script automatically invokes `winget` right after detection.
+2. **Exact Direct Single-File Links (`downloads\DOWNLOAD_LINKS.txt`)**: If any components are still missing (including `Git-2.48.1-64-bit.exe`, `cmake-3.31.5-windows-x86_64.msi`, `ninja-win.zip`, `LLVM-19.1.7-win64.exe`, and the 18 `thirdparty/` `.zip` archives), the script immediately exports **exact direct single-file download URLs** to `downloads\DOWNLOAD_LINKS.txt`.
+3. **Unified Verification & Installation in `downloads\`**:
+   - **Option `[1]` (Script Auto-Download)**: The script automatically downloads missing packages into `downloads\`, then verifies and installs them.
+   - **Option `[2]` (Slow Network / Manual Download)**: Download the missing files yourself using the direct URLs in `downloads\DOWNLOAD_LINKS.txt` and place them directly into the **`downloads\`** folder in the project root (**keep original filenames, do NOT extract manually**). Then select `[2]` (or re-run the script): it will verify all packages in `downloads\`, install/extract valid ones, and prompt you for any remaining missing packages.
 
 #### 2. Download Third-Party Dependencies
 If you did not fetch the third-party libraries in Step 1, you can run the dependency script directly (`run-codegen.bat` will also check and fetch them automatically if missing):

@@ -423,6 +423,7 @@ CMakeUserPresets.json
 # STKX-recomp: Game assets, saves, and recompiled XEX C++ sources
 game_root/
 saves/
+downloads/
 src/generated/
 
 # STKX-recomp: Local notes & launcher

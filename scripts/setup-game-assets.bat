@@ -28,8 +28,23 @@ if not exist "saves" (
     echo [OK] Created directory / 已创建目录: %CD%\saves\
 )
 
+if not exist "%DOWNLOAD_DIR%" (
+    mkdir "%DOWNLOAD_DIR%"
+)
+
+REM Auto-include common default installation paths into session PATH
+if exist "%CD%\tools\binutils" set "PATH=%CD%\tools\binutils;!PATH!"
+if exist "C:\Program Files\Git\cmd" set "PATH=!PATH!;C:\Program Files\Git\cmd"
+if exist "C:\Program Files\CMake\bin" set "PATH=!PATH!;C:\Program Files\CMake\bin"
+if exist "C:\Program Files\LLVM\bin" set "PATH=!PATH!;C:\Program Files\LLVM\bin"
+
 REM ------------------------------------------------------------------------------
-REM 1. Game Assets Check
+REM Step 1: First verify & install any valid packages already placed in downloads\
+REM ------------------------------------------------------------------------------
+call :VERIFY_AND_INSTALL_DOWNLOADS
+
+REM ------------------------------------------------------------------------------
+REM Step 2: Check Game Assets (game_root\)
 REM ------------------------------------------------------------------------------
 echo.
 echo [1/3] Checking game assets [game_root]... / 检测游戏资源 [game_root]...
@@ -54,7 +69,7 @@ if exist "game_root\DATA" (
 )
 
 REM ------------------------------------------------------------------------------
-REM 2. Build Toolchain Check
+REM Step 3: Check Build Toolchain
 REM ------------------------------------------------------------------------------
 echo.
 echo [2/3] Checking build toolchain... / 检测后续编译所需工具链...
@@ -69,7 +84,7 @@ where git >nul 2>nul
 if %ERRORLEVEL% equ 0 (
     echo   [OK]      Git
 ) else (
-    echo   [MISSING] Git        ^(Required for fetching source dependencies / 用于拉取源码依赖^)
+    echo   [MISSING] Git        ^(Git-2.48.1-64-bit.exe^)
     set "MISS_GIT=1"
     set "TOOLS_OK=0"
 )
@@ -78,7 +93,7 @@ where cmake >nul 2>nul
 if %ERRORLEVEL% equ 0 (
     echo   [OK]      CMake
 ) else (
-    echo   [MISSING] CMake      ^(Requires 3.25+ / 需 3.25+, 用于项目配置与构建^)
+    echo   [MISSING] CMake      ^(cmake-3.31.5-windows-x86_64.msi^)
     set "MISS_CMAKE=1"
     set "TOOLS_OK=0"
 )
@@ -87,7 +102,7 @@ where ninja >nul 2>nul
 if %ERRORLEVEL% equ 0 (
     echo   [OK]      Ninja
 ) else (
-    echo   [MISSING] Ninja      ^(Used by CMakePresets Ninja Multi-Config^)
+    echo   [MISSING] Ninja      ^(ninja-win.zip^)
     set "MISS_NINJA=1"
     set "TOOLS_OK=0"
 )
@@ -100,7 +115,7 @@ if %ERRORLEVEL% neq 0 set "HAS_CLANG=0"
 if !HAS_CLANG! equ 1 (
     echo   [OK]      LLVM/Clang ^(clang / clang++^)
 ) else (
-    echo   [MISSING] LLVM/Clang ^(CMakePresets requires clang / clang++^)
+    echo   [MISSING] LLVM/Clang ^(LLVM-19.1.7-win64.exe^)
     set "MISS_CLANG=1"
     set "TOOLS_OK=0"
 )
@@ -118,13 +133,35 @@ if !HAS_MSVC! equ 0 if exist "!VSWHERE!" (
 if !HAS_MSVC! equ 1 (
     echo   [OK]      VS2022 / MSVC Build Tools ^& Windows SDK
 ) else (
-    echo   [MISSING] VS2022 / MSVC Build Tools [Required for linking Windows targets / Clang 链接必需]
+    echo   [MISSING] VS2022 / MSVC Build Tools [Online installer via winget / 需通过 winget 自动安装]
     set "MISS_MSVC=1"
-    set "TOOLS_OK=0"
 )
 
+REM VS2022 Build Tools has no single standalone offline archive; auto-install via winget immediately when missing
+if !MISS_MSVC! equ 1 if "!CHECK_ONLY!"=="0" (
+    echo.
+    echo [Auto-Install / 自动安装] VS2022 Build Tools does not have a single standalone package.
+    echo                           VS2022 Build Tools 无独立单文件安装包，正在通过 winget 自动安装...
+    where winget >nul 2>nul
+    if %ERRORLEVEL% equ 0 (
+        winget install --id Microsoft.VisualStudio.2022.BuildTools -e --accept-source-agreements --accept-package-agreements --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+        if exist "!VSWHERE!" (
+            for /f "usebackq delims=" %%I in (`"!VSWHERE!" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2^>nul`) do (
+                if not "%%I"=="" (
+                    set "HAS_MSVC=1"
+                    set "MISS_MSVC=0"
+                    echo   [OK]      VS2022 / MSVC Build Tools installed.
+                )
+            )
+        )
+    ) else (
+        echo   [WARN] winget not found. Please install Windows App Installer ^(winget^) or VS2022 Build Tools with "Desktop development with C++".
+    )
+)
+if !MISS_MSVC! equ 1 set "TOOLS_OK=0"
+
 REM ------------------------------------------------------------------------------
-REM 3. Third-Party Source Dependencies Check (thirdparty\)
+REM Step 4: Check Third-Party Source Dependencies (thirdparty\)
 REM ------------------------------------------------------------------------------
 echo.
 echo [3/3] Checking third-party libraries [thirdparty\]... / 检测第三方源码依赖 [thirdparty\]...
@@ -165,7 +202,7 @@ if !ASSETS_OK! equ 1 if !TOOLS_OK! equ 1 if !LIBS_OK! equ 1 (
 
 if !ASSETS_OK! equ 0 (
     echo [ASSETS NOT READY / 游戏资源未就绪]
-    echo Please place your extracted Xbox 360 game files into / 请将正版提取的 Xbox 360 游戏文件放入:
+    echo Please place your extracted Xbox 360 XEX game files into / 请将正版解包的 XEX 游戏文件放入:
     echo   %CD%\game_root\default.xex
     echo   %CD%\game_root\DATA\
     echo.
@@ -178,155 +215,48 @@ if !TOOLS_OK! equ 1 if !LIBS_OK! equ 1 (
     goto :SCRIPT_EXIT
 )
 
-echo [MISSING COMPONENTS / 发现缺失组件] Please select an installation method / 请选择安装方式:
-echo   [1] One-click online download ^& install (Requires Internet / 一键联网下载并安装缺失组件)
-echo   [2] Export download links for manual/offline download (导出缺失组件下载链接，适合弱网/离线)
-echo   [3] Extract ^& install downloaded .zip archives from %DOWNLOAD_DIR% (从指定目录统一解压安装压缩包)
-echo   [0] Exit without installing (暂不安装，退出检测)
+REM ------------------------------------------------------------------------------
+REM Step 5: Generate exact direct download links into DOWNLOAD_LINKS.txt
+REM ------------------------------------------------------------------------------
+call :WRITE_DOWNLOAD_LINKS
+
+echo [MISSING PACKAGES / 发现未安装的依赖包]
+echo Direct single-file download links have been exported to / 精确单文件直链清单已生成至:
+echo   %LINKS_FILE%
+echo.
+type "%LINKS_FILE%"
+echo.
+echo ==============================================================================
+echo Unified Package Directory / 统一安装包存放与校验目录:
+echo   %DOWNLOAD_DIR%\
+echo.
+echo Please choose how to complete the missing packages / 请选择补全缺失安装包的方式:
+echo   [1] Auto-download missing packages into downloads\ ^& verify/install
+echo       由脚本自动下载缺失包至 downloads\ 目录并统一校验安装 (Requires Internet / 需联网)
+echo   [2] I have downloaded the files into downloads\ manually; verify ^& install now
+echo       我已根据 DOWNLOAD_LINKS.txt 自行下载并放入 downloads\ 目录，立即重新校验并安装
+echo   [0] Exit / 暂不安装，退出检测
 echo ==============================================================================
 
 if "!CHECK_ONLY!"=="1" exit /b 1
 
 set "USER_CHOICE="
-set /p "USER_CHOICE=Select option / 请输入选项 [1/2/3/0]: "
+set /p "USER_CHOICE=Select option / 请输入选项 [1/2/0]: "
 
-if "!USER_CHOICE!"=="1" goto :ONE_CLICK_INSTALL
-if "!USER_CHOICE!"=="2" goto :SHOW_MANUAL_LINKS
-if "!USER_CHOICE!"=="3" goto :EXTRACT_ARCHIVE_DIR
-if "!USER_CHOICE!"=="0" goto :SCRIPT_EXIT
-echo Invalid option, please try again. / 无效选项，请重试。
-goto :RUN_CHECK
-
-REM ==============================================================================
-REM Option 1: One-click online download and install
-REM ==============================================================================
-:ONE_CLICK_INSTALL
-echo.
-echo [One-Click Install / 一键安装] Processing missing components...
-
-if !TOOLS_OK! equ 0 (
-    where winget >nul 2>nul
-    if %ERRORLEVEL% equ 0 (
-        echo Detected winget, installing missing build tools...
-        if !MISS_GIT! equ 1   winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements
-        if !MISS_CMAKE! equ 1 winget install --id Kitware.CMake -e --accept-source-agreements --accept-package-agreements
-        if !MISS_NINJA! equ 1 winget install --id Ninja-build.Ninja -e --accept-source-agreements --accept-package-agreements
-        if !MISS_CLANG! equ 1 winget install --id LLVM.LLVM -e --accept-source-agreements --accept-package-agreements
-        if !MISS_MSVC! equ 1 (
-            echo Launching Visual Studio 2022 Build Tools installer ^(Please select "Desktop development with C++"^)...
-            echo 正在启动 Visual Studio 2022 Build Tools 安装器 ^(请勾选 "使用 C++ 的桌面开发"^)...
-            winget install --id Microsoft.VisualStudio.2022.BuildTools -e --accept-source-agreements --accept-package-agreements
-        )
-        REM Refresh current session PATH
-        for /f "usebackq delims=" %%P in (`powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')"`) do set "PATH=%%P"
-    ) else (
-        echo [WARN] winget not found. Please use Option [2] to get installer download links.
-        echo [警告] 当前系统未检测到 winget，请使用选项 [2] 获取安装包下载链接。
-    )
-)
-
-if !LIBS_OK! equ 0 (
-    where git >nul 2>nul
-    if %ERRORLEVEL% equ 0 (
-        echo.
-        echo Fetching missing third-party source libraries via Git...
-        call "%~dp0download-dependencies.bat" --no-pause
-    ) else (
-        echo.
-        echo [INFO] Git not found; downloading .zip archives via PowerShell and extracting...
-        if not exist "%DOWNLOAD_DIR%" mkdir "%DOWNLOAD_DIR%"
-        call :PS_DOWNLOAD_MISSING_ZIPS
-        call :PS_EXTRACT_ALL_ZIPS
-    )
-)
-
-echo.
-echo [DONE / 完成] One-click processing finished. Press Enter to re-check...
-set /p "_RECHECK_WAIT=Press Enter to continue / 请按 Enter 键重新检测..."
-goto :RUN_CHECK
-
-REM ==============================================================================
-REM Option 2: Export missing component download links + target folder
-REM ==============================================================================
-:SHOW_MANUAL_LINKS
-if not exist "%DOWNLOAD_DIR%" mkdir "%DOWNLOAD_DIR%"
-
-> "%LINKS_FILE%" (
-    echo ==============================================================================
-    echo Shutokou Battle X - Missing Components Manual Download List / 缺失组件手动下载清单
-    echo Generated / 生成时间: %DATE% %TIME%
-    echo ==============================================================================
+if "!USER_CHOICE!"=="1" (
     echo.
-    if !TOOLS_OK! equ 0 (
-        echo [1. Build Toolchain Installers - Run installer after download / 编译工具链安装包 - 下载后直接双击安装]
-        if !MISS_GIT! equ 1   echo   - Git for Windows: https://git-scm.com/download/win
-        if !MISS_CMAKE! equ 1 echo   - CMake ^(Windows x64^): https://cmake.org/download/
-        if !MISS_NINJA! equ 1 echo   - Ninja ^(Windows zip^): https://github.com/ninja-build/ninja/releases/latest
-        if !MISS_CLANG! equ 1 echo   - LLVM/Clang ^(win64.exe^): https://github.com/llvm/llvm-project/releases/latest
-        if !MISS_MSVC! equ 1  echo   - VS2022 Build Tools: https://visualstudio.microsoft.com/zh-hans/visual-cpp-build-tools/
-        echo.
-    )
-    if !LIBS_OK! equ 0 (
-        echo [2. Third-Party Source Archives - Place .zip files directly in folder below ^(DO NOT extract manually^)]
-        echo [二、第三方源码依赖包 - 请下载为 .zip 压缩包并直接放入以下目录（保持原文件名，无需手动解压）:]
-        echo Target Directory / 存放目录: %DOWNLOAD_DIR%
-        echo.
-        if not exist "thirdparty\cli11\include\CLI\CLI.hpp"          echo   - cli11        : https://github.com/CLIUtils/CLI11/archive/HEAD.zip
-        if not exist "thirdparty\tomlplusplus\include\toml++\toml.hpp" echo   - tomlplusplus : https://github.com/marzer/tomlplusplus/archive/HEAD.zip
-        if not exist "thirdparty\simde\simde\simde-common.h"         echo   - simde        : https://github.com/simd-everywhere/simde/archive/HEAD.zip
-        if not exist "thirdparty\xxHash\xxhash.c"                    echo   - xxHash       : https://github.com/Cyan4973/xxHash/archive/refs/tags/v0.8.3.zip
-        if not exist "thirdparty\spdlog\include\spdlog\spdlog.h"     echo   - spdlog       : https://github.com/gabime/spdlog/archive/HEAD.zip
-        if not exist "thirdparty\fmt\include\fmt\format.h"           echo   - fmt          : https://github.com/fmtlib/fmt/archive/HEAD.zip
-        if not exist "thirdparty\utfcpp\source\utf8.h"               echo   - utfcpp       : https://github.com/nemtrif/utfcpp/archive/HEAD.zip
-        if not exist "thirdparty\sdl3\cmake\macros.cmake"            echo   - sdl3         : https://github.com/libsdl-org/SDL/archive/refs/heads/release-3.4.x.zip
-        if not exist "thirdparty\imgui\imgui.cpp"                    echo   - imgui        : https://github.com/ocornut/imgui/archive/HEAD.zip
-        if not exist "thirdparty\inja\include\inja\inja.hpp"         echo   - inja         : https://github.com/pantor/inja/archive/HEAD.zip
-        if not exist "thirdparty\libmspack\cabextract\mspack\lzxd.c" echo   - libmspack    : https://github.com/kyz/libmspack/archive/HEAD.zip
-        if not exist "thirdparty\o1heap\o1heap\o1heap.c"             echo   - o1heap       : https://github.com/pavel-kirienko/o1heap/archive/HEAD.zip
-        if not exist "thirdparty\FFmpeg\libavutil\adler32.c"         echo   - FFmpeg       : https://github.com/wmarti/FFmpeg/archive/refs/heads/xenia-ffmpeg-canary-full.zip
-        if not exist "thirdparty\vulkan-headers\include\vulkan\vulkan.h"            echo   - vulkan-headers          : https://github.com/KhronosGroup/Vulkan-Headers/archive/HEAD.zip
-        if not exist "thirdparty\vulkan-memory-allocator\include\vk_mem_alloc.h"    echo   - vulkan-memory-allocator : https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/HEAD.zip
-        if not exist "thirdparty\spirv-headers\include\spirv\unified1\spirv.h"      echo   - spirv-headers           : https://github.com/KhronosGroup/SPIRV-Headers/archive/HEAD.zip
-        if not exist "thirdparty\spirv-tools\include\spirv-tools\libspirv.h"        echo   - spirv-tools             : https://github.com/KhronosGroup/SPIRV-Tools/archive/HEAD.zip
-        if not exist "thirdparty\glslang\SPIRV\SpvBuilder.h"                        echo   - glslang                 : https://github.com/KhronosGroup/glslang/archive/refs/tags/11.13.0.zip
-    )
-)
-
-echo.
-type "%LINKS_FILE%"
-echo.
-echo [INFO / 提示] The download list above has been saved to / 以上清单已同步保存至:
-echo   %LINKS_FILE%
-echo.
-echo Please place all downloaded .zip archives ^(keep original filenames, DO NOT extract manually^) into:
-echo 请将下载好的所有 .zip 压缩包（保持原文件名，无需手动解压）放入:
-echo   %DOWNLOAD_DIR%\
-echo.
-set "NEXT_ACTION="
-set /p "NEXT_ACTION=Enter [Y] to extract & install now, or [M] to return to menu / 放好后输入 [Y] 立即统一解压安装，或输入 [M] 返回主菜单: "
-if /i "!NEXT_ACTION!"=="Y" goto :EXTRACT_ARCHIVE_DIR
-goto :RUN_CHECK
-
-REM ==============================================================================
-REM Option 3: Extract & install all archives from downloads\
-REM ==============================================================================
-:EXTRACT_ARCHIVE_DIR
-echo.
-if not exist "%DOWNLOAD_DIR%" (
-    mkdir "%DOWNLOAD_DIR%"
-    echo [INFO / 提示] Created directory / 已创建存放目录: %DOWNLOAD_DIR%
-    echo Please place the downloaded .zip archives into this directory first.
-    echo 请先将下载好的 .zip 压缩包放入该目录，然后再执行本步骤。
-    set /p "_WAIT_DIR=Press Enter to return to menu / 请按 Enter 键返回主菜单..."
+    echo [Auto-Download / 自动下载] Downloading missing packages into %DOWNLOAD_DIR%\...
+    call :PS_DOWNLOAD_MISSING_PACKAGES
+    echo.
+    echo [Verify ^& Install / 校验并安装] Re-scanning %DOWNLOAD_DIR%\ and installing verified packages...
     goto :RUN_CHECK
 )
+if "!USER_CHOICE!"=="2" (
+    goto :RUN_CHECK
+)
+if "!USER_CHOICE!"=="0" goto :SCRIPT_EXIT
 
-echo Scanning and extracting archives from %DOWNLOAD_DIR%...
-call :PS_EXTRACT_ALL_ZIPS
-
-echo.
-echo [DONE / 完成] Archive extraction finished. / 统一解压安装结束。
-set /p "_WAIT_EXT=Press Enter to re-check / 请按 Enter 键重新检测..."
+echo Invalid option, please try again. / 无效选项，请重试。
 goto :RUN_CHECK
 
 :SCRIPT_EXIT
@@ -351,10 +281,59 @@ if exist "%LIB_SENTINEL%" (
 )
 exit /b 0
 
-:PS_DOWNLOAD_MISSING_ZIPS
+:WRITE_DOWNLOAD_LINKS
+> "%LINKS_FILE%" (
+    echo ==============================================================================
+    echo Shutokou Battle X - Exact Direct Download Links / 缺失组件精确单文件下载清单
+    echo Target Folder / 统一存放目录: %DOWNLOAD_DIR%\
+    echo Instructions  / 使用说明:
+    echo   All links below are direct single-file downloads. Place downloaded files
+    echo   directly into %DOWNLOAD_DIR%\ ^(keep original filenames, DO NOT extract^).
+    echo   以下链接均为精确单文件直链，下载后无需解压或重命名，请直接放入 %DOWNLOAD_DIR%\ 目录。
+    echo ==============================================================================
+    echo.
+    if !MISS_GIT! equ 1   echo   [Toolchain] Git-2.48.1-64-bit.exe            : https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-64-bit.exe
+    if !MISS_CMAKE! equ 1 echo   [Toolchain] cmake-3.31.5-windows-x86_64.msi  : https://github.com/Kitware/CMake/releases/download/v3.31.5/cmake-3.31.5-windows-x86_64.msi
+    if !MISS_NINJA! equ 1 echo   [Toolchain] ninja-win.zip                    : https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip
+    if !MISS_CLANG! equ 1 echo   [Toolchain] LLVM-19.1.7-win64.exe            : https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.7/LLVM-19.1.7-win64.exe
+    if not exist "thirdparty\cli11\include\CLI\CLI.hpp"                                echo   [Library]   cli11.zip                        : https://github.com/CLIUtils/CLI11/archive/HEAD.zip
+    if not exist "thirdparty\tomlplusplus\include\toml++\toml.hpp"                     echo   [Library]   tomlplusplus.zip                 : https://github.com/marzer/tomlplusplus/archive/HEAD.zip
+    if not exist "thirdparty\simde\simde\simde-common.h"                               echo   [Library]   simde.zip                        : https://github.com/simd-everywhere/simde/archive/HEAD.zip
+    if not exist "thirdparty\xxHash\xxhash.c"                                          echo   [Library]   xxHash-v0.8.3.zip                : https://github.com/Cyan4973/xxHash/archive/refs/tags/v0.8.3.zip
+    if not exist "thirdparty\spdlog\include\spdlog\spdlog.h"                           echo   [Library]   spdlog.zip                       : https://github.com/gabime/spdlog/archive/HEAD.zip
+    if not exist "thirdparty\fmt\include\fmt\format.h"                                 echo   [Library]   fmt.zip                          : https://github.com/fmtlib/fmt/archive/HEAD.zip
+    if not exist "thirdparty\utfcpp\source\utf8.h"                                     echo   [Library]   utfcpp.zip                       : https://github.com/nemtrif/utfcpp/archive/HEAD.zip
+    if not exist "thirdparty\sdl3\cmake\macros.cmake"                                  echo   [Library]   SDL-release-3.4.x.zip            : https://github.com/libsdl-org/SDL/archive/refs/heads/release-3.4.x.zip
+    if not exist "thirdparty\imgui\imgui.cpp"                                          echo   [Library]   imgui.zip                        : https://github.com/ocornut/imgui/archive/HEAD.zip
+    if not exist "thirdparty\inja\include\inja\inja.hpp"                               echo   [Library]   inja.zip                         : https://github.com/pantor/inja/archive/HEAD.zip
+    if not exist "thirdparty\libmspack\cabextract\mspack\lzxd.c"                       echo   [Library]   libmspack.zip                    : https://github.com/kyz/libmspack/archive/HEAD.zip
+    if not exist "thirdparty\o1heap\o1heap\o1heap.c"                                   echo   [Library]   o1heap.zip                       : https://github.com/pavel-kirienko/o1heap/archive/HEAD.zip
+    if not exist "thirdparty\FFmpeg\libavutil\adler32.c"                               echo   [Library]   FFmpeg-xenia-ffmpeg-canary-full.zip : https://github.com/wmarti/FFmpeg/archive/refs/heads/xenia-ffmpeg-canary-full.zip
+    if not exist "thirdparty\vulkan-headers\include\vulkan\vulkan.h"                   echo   [Library]   vulkan-headers.zip               : https://github.com/KhronosGroup/Vulkan-Headers/archive/HEAD.zip
+    if not exist "thirdparty\vulkan-memory-allocator\include\vk_mem_alloc.h"           echo   [Library]   vulkan-memory-allocator.zip      : https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/HEAD.zip
+    if not exist "thirdparty\spirv-headers\include\spirv\unified1\spirv.h"             echo   [Library]   spirv-headers.zip                : https://github.com/KhronosGroup/SPIRV-Headers/archive/HEAD.zip
+    if not exist "thirdparty\spirv-tools\include\spirv-tools\libspirv.h"               echo   [Library]   spirv-tools.zip                  : https://github.com/KhronosGroup/SPIRV-Tools/archive/HEAD.zip
+    if not exist "thirdparty\glslang\SPIRV\SpvBuilder.h"                               echo   [Library]   glslang-11.13.0.zip              : https://github.com/KhronosGroup/glslang/archive/refs/tags/11.13.0.zip
+)
+exit /b 0
+
+:PS_DOWNLOAD_MISSING_PACKAGES
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$ErrorActionPreference = 'Continue';" ^
   "$dl = '%DOWNLOAD_DIR%';" ^
+  "$tools = @(" ^
+  "  @{ name='Git';   cmd='git';   url='https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-64-bit.exe'; file='Git-2.48.1-64-bit.exe' }," ^
+  "  @{ name='CMake'; cmd='cmake'; url='https://github.com/Kitware/CMake/releases/download/v3.31.5/cmake-3.31.5-windows-x86_64.msi'; file='cmake-3.31.5-windows-x86_64.msi' }," ^
+  "  @{ name='Ninja'; cmd='ninja'; url='https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip'; file='ninja-win.zip' }," ^
+  "  @{ name='LLVM';  cmd='clang'; url='https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.7/LLVM-19.1.7-win64.exe'; file='LLVM-19.1.7-win64.exe' }" ^
+  ");" ^
+  "foreach ($t in $tools) {" ^
+  "  if (Get-Command $t.cmd -ErrorAction SilentlyContinue) { continue }" ^
+  "  $out = Join-Path $dl $t.file;" ^
+  "  if ((Test-Path $out) -and ((Get-Item $out).Length -gt 50000)) { Write-Host ('  [Cached]   ' + $t.file); continue }" ^
+  "  Write-Host ('  [Download] ' + $t.name + ' -> ' + $out);" ^
+  "  try { Invoke-WebRequest -Uri $t.url -OutFile $out -UseBasicParsing } catch { Write-Host ('  [ERROR] Failed to download ' + $t.name + ': ' + $_.Exception.Message) }" ^
+  "}" ^
   "$items = @(" ^
   "  @{ name='cli11';        sentinel='thirdparty\cli11\include\CLI\CLI.hpp';          url='https://github.com/CLIUtils/CLI11/archive/HEAD.zip'; file='cli11.zip' }," ^
   "  @{ name='tomlplusplus'; sentinel='thirdparty\tomlplusplus\include\toml++\toml.hpp'; url='https://github.com/marzer/tomlplusplus/archive/HEAD.zip'; file='tomlplusplus.zip' }," ^
@@ -378,36 +357,76 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "foreach ($it in $items) {" ^
   "  if (Test-Path $it.sentinel) { continue }" ^
   "  $out = Join-Path $dl $it.file;" ^
-  "  Write-Host ('[Download] ' + $it.name + ' -> ' + $out);" ^
-  "  try { Invoke-WebRequest -Uri $it.url -OutFile $out -UseBasicParsing } catch { Write-Host ('[ERROR] Download failed: ' + $it.name + ' - ' + $_.Exception.Message) }" ^
+  "  if ((Test-Path $out) -and ((Get-Item $out).Length -gt 1024)) { Write-Host ('  [Cached]   ' + $it.file); continue }" ^
+  "  Write-Host ('  [Download] ' + $it.name + ' -> ' + $out);" ^
+  "  try { Invoke-WebRequest -Uri $it.url -OutFile $out -UseBasicParsing } catch { Write-Host ('  [ERROR] Failed to download ' + $it.name + ': ' + $_.Exception.Message) }" ^
   "}"
 exit /b 0
 
-:PS_EXTRACT_ALL_ZIPS
+:VERIFY_AND_INSTALL_DOWNLOADS
+if "!CHECK_ONLY!"=="1" exit /b 0
+if not exist "%DOWNLOAD_DIR%" exit /b 0
+
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$ErrorActionPreference = 'Stop';" ^
+  "$ErrorActionPreference = 'Continue';" ^
+  "Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue;" ^
   "$dl = '%DOWNLOAD_DIR%';" ^
+  "$files = Get-ChildItem -Path $dl -File -ErrorAction SilentlyContinue;" ^
+  "if (-not $files) { exit 0 }" ^
+  "function Test-ValidZip($path) {" ^
+  "  try { $z = [System.IO.Compression.ZipFile]::OpenRead($path); $c = $z.Entries.Count; $z.Dispose(); return ($c -gt 0) } catch { return $false }" ^
+  "}" ^
+  "if (-not (Get-Command git -ErrorAction SilentlyContinue)) {" ^
+  "  $gitPkg = $files | Where-Object { $_.Name -like 'Git-*.exe' } | Select-Object -First 1;" ^
+  "  if ($gitPkg -and $gitPkg.Length -gt 10000000) {" ^
+  "    Write-Host ('  [Verify OK] Installing ' + $gitPkg.Name + '...');" ^
+  "    Start-Process -FilePath $gitPkg.FullName -ArgumentList '/VERYSILENT','/NORESTART' -Wait;" ^
+  "  } elseif ($gitPkg) { Write-Host ('  [CORRUPT] ' + $gitPkg.Name + ' is incomplete, please re-download.') }" ^
+  "}" ^
+  "if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {" ^
+  "  $cmakePkg = $files | Where-Object { $_.Name -like 'cmake-*.msi' -or $_.Name -like 'cmake-*.exe' } | Select-Object -First 1;" ^
+  "  if ($cmakePkg -and $cmakePkg.Length -gt 10000000) {" ^
+  "    Write-Host ('  [Verify OK] Installing ' + $cmakePkg.Name + '...');" ^
+  "    if ($cmakePkg.Extension -eq '.msi') { Start-Process -FilePath 'msiexec.exe' -ArgumentList '/i', ('\"' + $cmakePkg.FullName + '\"'), 'ADD_CMAKE_TO_PATH=System', '/passive', '/norestart' -Wait }" ^
+  "    else { Start-Process -FilePath $cmakePkg.FullName -ArgumentList '/S' -Wait }" ^
+  "  } elseif ($cmakePkg) { Write-Host ('  [CORRUPT] ' + $cmakePkg.Name + ' is incomplete, please re-download.') }" ^
+  "}" ^
+  "if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {" ^
+  "  $ninjaPkg = $files | Where-Object { $_.Name -like '*ninja*.zip' } | Select-Object -First 1;" ^
+  "  if ($ninjaPkg -and (Test-ValidZip $ninjaPkg.FullName)) {" ^
+  "    Write-Host ('  [Verify OK] Extracting ' + $ninjaPkg.Name + ' -> tools\binutils\ninja.exe');" ^
+  "    New-Item -ItemType Directory -Path 'tools\binutils' -Force | Out-Null;" ^
+  "    Expand-Archive -Path $ninjaPkg.FullName -DestinationPath 'tools\binutils' -Force;" ^
+  "  } elseif ($ninjaPkg) { Write-Host ('  [CORRUPT] ' + $ninjaPkg.Name + ' is not a valid zip archive, please re-download.') }" ^
+  "}" ^
+  "if (-not (Get-Command clang -ErrorAction SilentlyContinue)) {" ^
+  "  $llvmPkg = $files | Where-Object { $_.Name -like 'LLVM-*.exe' } | Select-Object -First 1;" ^
+  "  if ($llvmPkg -and $llvmPkg.Length -gt 50000000) {" ^
+  "    Write-Host ('  [Verify OK] Installing ' + $llvmPkg.Name + '...');" ^
+  "    Start-Process -FilePath $llvmPkg.FullName -ArgumentList '/S' -Wait;" ^
+  "  } elseif ($llvmPkg) { Write-Host ('  [CORRUPT] ' + $llvmPkg.Name + ' is incomplete, please re-download.') }" ^
+  "}" ^
   "$items = @(" ^
-  "  @{ name='cli11';        sentinel='thirdparty\cli11\include\CLI\CLI.hpp';          target='thirdparty\cli11';        patterns=@('*cli11*.zip') }," ^
+  "  @{ name='cli11';        sentinel='thirdparty\cli11\include\CLI\CLI.hpp';          target='thirdparty\cli11';        patterns=@('*cli11*.zip','*CLI11*.zip') }," ^
   "  @{ name='tomlplusplus'; sentinel='thirdparty\tomlplusplus\include\toml++\toml.hpp'; target='thirdparty\tomlplusplus'; patterns=@('*toml*.zip') }," ^
   "  @{ name='simde';        sentinel='thirdparty\simde\simde\simde-common.h';         target='thirdparty\simde';        patterns=@('*simde*.zip') }," ^
-  "  @{ name='xxHash';       sentinel='thirdparty\xxHash\xxhash.c';                    target='thirdparty\xxHash';       patterns=@('*xxhash*.zip') }," ^
+  "  @{ name='xxHash';       sentinel='thirdparty\xxHash\xxhash.c';                    target='thirdparty\xxHash';       patterns=@('*xxhash*.zip','*xxHash*.zip') }," ^
   "  @{ name='spdlog';       sentinel='thirdparty\spdlog\include\spdlog\spdlog.h';     target='thirdparty\spdlog';       patterns=@('*spdlog*.zip') }," ^
   "  @{ name='fmt';          sentinel='thirdparty\fmt\include\fmt\format.h';           target='thirdparty\fmt';          patterns=@('*fmt*.zip') }," ^
   "  @{ name='utfcpp';       sentinel='thirdparty\utfcpp\source\utf8.h';               target='thirdparty\utfcpp';       patterns=@('*utfcpp*.zip') }," ^
-  "  @{ name='sdl3';         sentinel='thirdparty\sdl3\cmake\macros.cmake';            target='thirdparty\sdl3';         patterns=@('*sdl*.zip') }," ^
+  "  @{ name='sdl3';         sentinel='thirdparty\sdl3\cmake\macros.cmake';            target='thirdparty\sdl3';         patterns=@('*sdl*.zip','*SDL*.zip') }," ^
   "  @{ name='imgui';        sentinel='thirdparty\imgui\imgui.cpp';                    target='thirdparty\imgui';        patterns=@('*imgui*.zip') }," ^
   "  @{ name='inja';         sentinel='thirdparty\inja\include\inja\inja.hpp';         target='thirdparty\inja';         patterns=@('*inja*.zip') }," ^
   "  @{ name='libmspack';    sentinel='thirdparty\libmspack\cabextract\mspack\lzxd.c'; target='thirdparty\libmspack';    patterns=@('*libmspack*.zip') }," ^
   "  @{ name='o1heap';       sentinel='thirdparty\o1heap\o1heap\o1heap.c';             target='thirdparty\o1heap';       patterns=@('*o1heap*.zip') }," ^
-  "  @{ name='FFmpeg';       sentinel='thirdparty\FFmpeg\libavutil\adler32.c';         target='thirdparty\FFmpeg';       patterns=@('*ffmpeg*.zip') }," ^
+  "  @{ name='FFmpeg';       sentinel='thirdparty\FFmpeg\libavutil\adler32.c';         target='thirdparty\FFmpeg';       patterns=@('*ffmpeg*.zip','*FFmpeg*.zip') }," ^
   "  @{ name='vulkan-headers';          sentinel='thirdparty\vulkan-headers\include\vulkan\vulkan.h';         target='thirdparty\vulkan-headers';          patterns=@('*vulkan-headers*.zip','*Vulkan-Headers*.zip') }," ^
   "  @{ name='vulkan-memory-allocator'; sentinel='thirdparty\vulkan-memory-allocator\include\vk_mem_alloc.h'; target='thirdparty\vulkan-memory-allocator'; patterns=@('*vulkan-memory-allocator*.zip','*VulkanMemoryAllocator*.zip') }," ^
   "  @{ name='spirv-headers';           sentinel='thirdparty\spirv-headers\include\spirv\unified1\spirv.h';   target='thirdparty\spirv-headers';           patterns=@('*spirv-headers*.zip','*SPIRV-Headers*.zip') }," ^
   "  @{ name='spirv-tools';             sentinel='thirdparty\spirv-tools\include\spirv-tools\libspirv.h';     target='thirdparty\spirv-tools';             patterns=@('*spirv-tools*.zip','*SPIRV-Tools*.zip') }," ^
   "  @{ name='glslang';                 sentinel='thirdparty\glslang\SPIRV\SpvBuilder.h';                     target='thirdparty\glslang';                 patterns=@('*glslang*.zip') }" ^
   ");" ^
-  "$zips = Get-ChildItem -Path $dl -Filter '*.zip' -File -ErrorAction SilentlyContinue;" ^
+  "$zips = $files | Where-Object { $_.Extension -eq '.zip' };" ^
   "foreach ($it in $items) {" ^
   "  if (Test-Path $it.sentinel) { continue }" ^
   "  $match = $null;" ^
@@ -415,21 +434,31 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "    $match = $zips | Where-Object { $_.Name -like $pat } | Select-Object -First 1;" ^
   "    if ($match) { break }" ^
   "  }" ^
-  "  if (-not $match) { Write-Host ('  [SKIP] Archive not found for ' + $it.name); continue }" ^
-  "  Write-Host ('  [Extract] ' + $match.Name + ' -> ' + $it.target);" ^
+  "  if (-not $match) { continue }" ^
+  "  if (-not (Test-ValidZip $match.FullName)) {" ^
+  "    Write-Host ('  [CORRUPT] ' + $match.Name + ' is corrupted/incomplete, please re-download.');" ^
+  "    continue;" ^
+  "  }" ^
+  "  Write-Host ('  [Verify OK] Extracting ' + $match.Name + ' -> ' + $it.target);" ^
   "  $tmp = Join-Path $dl ('_tmp_' + $it.name);" ^
   "  if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }" ^
   "  Expand-Archive -Path $match.FullName -DestinationPath $tmp -Force;" ^
   "  if (Test-Path $it.target) { Remove-Item -Recurse -Force $it.target }" ^
   "  $dirs = Get-ChildItem -Path $tmp -Directory;" ^
-  "  $files = Get-ChildItem -Path $tmp -File;" ^
-  "  if ($dirs.Count -eq 1 -and $files.Count -eq 0) {" ^
+  "  $topFiles = Get-ChildItem -Path $tmp -File;" ^
+  "  if ($dirs.Count -eq 1 -and $topFiles.Count -eq 0) {" ^
   "    Move-Item -Path $dirs[0].FullName -Destination $it.target;" ^
   "  } else {" ^
   "    New-Item -ItemType Directory -Path $it.target -Force | Out-Null;" ^
   "    Get-ChildItem -Path $tmp | Move-Item -Destination $it.target;" ^
   "  }" ^
   "  if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }" ^
-  "  if (Test-Path $it.sentinel) { Write-Host ('  [OK]      ' + $it.name + ' installed') } else { Write-Host ('  [WARN]    ' + $it.name + ' extracted, but missing sentinel: ' + $it.sentinel) }" ^
+  "  if (Test-Path $it.sentinel) { Write-Host ('  [Installed] ' + $it.name) } else { Write-Host ('  [WARN] ' + $it.name + ' extracted, but missing expected file: ' + $it.sentinel) }" ^
   "}"
+
+REM Refresh session PATH after any toolchain package installation
+if exist "%CD%\tools\binutils" set "PATH=%CD%\tools\binutils;!PATH!"
+if exist "C:\Program Files\Git\cmd" set "PATH=!PATH!;C:\Program Files\Git\cmd"
+if exist "C:\Program Files\CMake\bin" set "PATH=!PATH!;C:\Program Files\CMake\bin"
+if exist "C:\Program Files\LLVM\bin" set "PATH=!PATH!;C:\Program Files\LLVM\bin"
 exit /b 0

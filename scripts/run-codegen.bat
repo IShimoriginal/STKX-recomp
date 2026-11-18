@@ -5,6 +5,11 @@ title Shutokou Battle X - ReXGlue AOT Codegen / 静态重编译代码生成工�
 
 cd /d "%~dp0.."
 
+if exist "%CD%\tools\binutils" set "PATH=%CD%\tools\binutils;!PATH!"
+if exist "C:\Program Files\Git\cmd" set "PATH=!PATH!;C:\Program Files\Git\cmd"
+if exist "C:\Program Files\CMake\bin" set "PATH=!PATH!;C:\Program Files\CMake\bin"
+if exist "C:\Program Files\LLVM\bin" set "PATH=!PATH!;C:\Program Files\LLVM\bin"
+
 if not exist "logs" mkdir "logs"
 set "LOG_FILE=%CD%\logs\codegen_latest.log"
 
